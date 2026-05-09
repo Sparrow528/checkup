@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>企业财务健康体检</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f0f2f5; color: #333; padding-bottom: 60px; min-height: 100vh;
+}
+/* ===== 顶部 ===== */
+.header {
+  background: linear-gradient(135deg, #1a237e, #3b82f6);
+  color: white; padding: 32px 20px 24px; text-align: center;
+}
+.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.header p { font-size: 13px; opacity: 0.85; }
+.header .badge {
+  display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
+  padding: 4px 14px; font-size: 11px; margin-top: 8px;
+}
+/* ===== Tab导航 ===== */
+.tabs {
+  display: flex; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  position: sticky; top: 0; z-index: 10;
+}
+.tab {
+  flex: 1; text-align: center; padding: 14px 0; font-size: 14px; font-weight: 500;
+  color: #888; cursor: pointer; border-bottom: 3px solid transparent; transition: all .2s;
+}
+.tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+.tab .count { display: inline-block; background: #e8ecf1; color: #888; border-radius: 10px;
+  padding: 0 8px; font-size: 11px; margin-left: 4px; }
+.tab.active .count { background: #e0ecff; color: #3b82f6; }
+/* ===== 面板 ===== */
+.panel { display: none; }
+.panel.active { display: block; }
+/* ===== 录入区 ===== */
+.input-section { padding: 16px; }
+.input-group {
+  background: white; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 12px;
+}
+.input-group-title {
+  background: #f8f9fc; padding: 10px 16px; font-size: 13px; font-weight: 600;
+  color: #1a237e; border-bottom: 1px solid #eef0f4;
+}
+.input-row {
+  display: flex; align-items: center; padding: 8px 16px;
+  border-bottom: 1px solid #f5f6f8;
+}
+.input-row:last-child { border-bottom: none; }
+.input-row label { flex: 1; font-size: 14px; color: #444; }
+.input-row input {
+  width: 130px; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px;
+  font-size: 14px; text-align: right; background: #fffbe6; outline: none;
+  transition: border-color .2s;
+}
+.input-row input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+.input-row input::placeholder { color: #bbb; font-size: 12px; }
+/* ===== 报告区 ===== */
+.report-section { padding: 16px; }
+/* 总分卡片 */
+.score-card {
+  background: linear-gradient(135deg, #1a237e, #3b82f6); border-radius: 16px;
+  padding: 24px; color: white; text-align: center; margin-bottom: 16px;
+}
+.score-card .label { font-size: 12px; opacity: 0.8; }
+.score-card .score { font-size: 48px; font-weight: 800; margin: 4px 0; }
+.score-card .grade { font-size: 18px; font-weight: 600; opacity: 0.95; }
+.score-card .suggestion { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+/* 维度汇总 */
+.dim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.dim-card {
+  background: white; border-radius: 12px; padding: 16px; text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.dim-card .name { font-size: 12px; color: #888; margin-bottom: 4px; }
+.dim-card .score { font-size: 22px; font-weight: 700; }
+.dim-card .max { font-size: 11px; color: #999; }
+.dim-card .rate { font-size: 11px; margin-top: 2px; }
+/* 指标表格 */
+.indicator-table {
+  background: white; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px;
+}
+.indicator-table .table-header {
+  display: flex; background: #f0f4ff; padding: 10px 12px; font-size: 11px; font-weight: 600; color: #555;
+}
+.indicator-table .table-row {
+  display: flex; padding: 10px 12px; font-size: 12px; border-bottom: 1px solid #f0f2f5;
+  align-items: center;
+}
+.indicator-table .table-row:last-child { border-bottom: none; }
+.col-name { flex: 2.5; }
+.col-value { flex: 1; text-align: center; }
+.col-score { flex: 0.8; text-align: center; font-weight: 600; }
+.col-status { flex: 1; text-align: center; font-weight: 600; }
+.col-detail { flex: 2; text-align: left; font-size: 11px; color: #888; padding-left: 4px; }
+.status-green { color: #16a34a; }
+.status-yellow { color: #d97706; }
+.status-red { color: #dc2626; }
+/* 说明页 */
+.help-section { padding: 16px; }
+.help-card {
+  background: white; border-radius: 12px; padding: 20px; margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.help-card h3 { font-size: 15px; margin-bottom: 10px; color: #1a237e; }
+.help-card p, .help-card li { font-size: 13px; color: #555; line-height: 1.8; }
+.help-card ol { padding-left: 20px; }
+.help-card .green { color: #16a34a; }
+.help-card .yellow { color: #d97706; }
+.help-card .red { color: #dc2626; }
+.help-card .contact { background: #f0f4ff; border-radius: 10px; padding: 14px; margin-top: 12px;
+  text-align: center; }
+.help-card .contact strong { color: #1a237e; display: block; font-size: 16px; margin-bottom: 4px; }
+/* 底部按钮 */
+.fixed-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 0;
+  background: white; box-shadow: 0 -2px 8px rgba(0,0,0,0.08); z-index: 20;
+}
+.fixed-bottom button {
+  flex: 1; border: none; padding: 14px; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all .2s;
+}
+.btn-primary { background: #3b82f6; color: white; }
+.btn-primary:active { background: #2563eb; }
+.btn-secondary { background: #f0f2f5; color: #333; }
+.btn-secondary:active { background: #e0e2e5; }
+/* 标签页固定底部 */
+#tabHelp .fixed-bottom { display: flex; }
+@media (min-width: 500px) {
+  body { max-width: 480px; margin: 0 auto; background: #e8eaed; }
+  .header { border-radius: 0 0 20px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="header">
+  <h1>🏥 企业财务健康体检</h1>
+  <p>填写数据 · 自动出结果</p>
+  <div class="badge">您身边的财税专家 · 洪淳宇</div>
+</div>
+
+<!-- Tab导航 -->
+<div class="tabs" id="tabNav">
+  <div class="tab active" data-tab="input" onclick="switchTab('input')">📝 填数据 <span class="count">30</span></div>
+  <div class="tab" data-tab="report" onclick="switchTab('report')">📊 看结果</div>
+  <div class="tab" data-tab="help" onclick="switchTab('help')">❓ 说明</div>
+</div>
+
+<!-- ===== 面板1: 数据录入 ===== -->
+<div class="panel active" id="panel-input">
+  <div class="input-section">
+    <div id="inputGroups"></div>
+  </div>
+  <div class="fixed-bottom">
+    <button class="btn-secondary" onclick="resetAll()">清空重填</button>
+    <button class="btn-primary" onclick="calcAndShow()">查看体检报告</button>
+  </div>
+</div>
+
+<!-- ===== 面板2: 体检报告 ===== -->
+<div class="panel" id="panel-report">
+  <div class="report-section">
+    <div id="scoreCard" class="score-card">
+      <div class="label">综合评分</div>
+      <div class="score">—</div>
+      <div class="grade">请先在「填数据」页面录入企业财务数据</div>
+      <div class="suggestion"></div>
+    </div>
+    <div id="dimGrid" class="dim-grid"></div>
+    <div id="indicatorTable" class="indicator-table" style="display:none">
+      <div class="table-header">
+        <span class="col-name">指标</span>
+        <span class="col-value">实际值</span>
+        <span class="col-score">评分</span>
+        <span class="col-status">状态</span>
+        <span class="col-detail">说明</span>
+      </div>
+      <div id="indicatorRows"></div>
+    </div>
+    <div class="fixed-bottom">
+      <button class="btn-secondary" onclick="switchTab('input')">← 修改数据</button>
+      <button class="btn-primary" onclick="shareResult()">📤 分享报告</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 面板3: 说明 ===== -->
+<div class="panel" id="panel-help">
+  <div class="help-section">
+    <div class="help-card">
+      <h3>📋 使用方法</h3>
+      <ol>
+        <li>点击「填数据」标签，在黄色输入框中填入企业的财务数据</li>
+        <li>填写完成后点击底部「查看体检报告」</li>
+        <li>系统自动计算各指标得分和综合评价</li>
+      </ol>
+    </div>
+    <div class="help-card">
+      <h3>📊 评分规则</h3>
+      <p><span class="green">🟢 健康</span> — 该指标表现良好，得满分</p>
+      <p><span class="yellow">🟡 关注</span> — 该指标需留意，得60%分</p>
+      <p><span class="red">🔴 预警</span> — 该指标存在问题，得20%分</p>
+    </div>
+    <div class="help-card">
+      <h3>📈 评级标准</h3>
+      <p><span class="green">AAA</span> 90+ 非常健康</p>
+      <p><span class="green">AA</span> 80-89 状况良好</p>
+      <p class="yellow">A 70-79 基本健康</p>
+      <p class="yellow">BBB 60-69 存在风险</p>
+      <p class="red">BB 50-59 风险较高</p>
+      <p class="red">B &lt;50 风险很高</p>
+    </div>
+    <div class="help-card">
+      <h3>👤 关于作者</h3>
+      <div class="contact">
+        <strong>洪淳宇 · 您身边的财税专家</strong>
+        <p>为企业提供专业财税合规、税务筹划、财务体检服务</p>
+        <p style="margin-top:6px;font-size:12px;color:#999;">📞 18601294989</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 指标定义 =====
+const INDICATORS = [
+  // 盈利能力
+  {id:1, dim:"盈利能力", name:"毛利率", inputs:["营业收入","营业成本"], unit:"%", std:"≥25%", maxScore:5,
+   calc: (d) => d["营业收入"] > 0 ? (d["营业收入"]-d["营业成本"])/d["营业收入"]*100 : null,
+   green: v=>v>=25, yellow: v=>v>=15, note:"产品盈利空间"},
+  {id:2, dim:"盈利能力", name:"净利率", inputs:["净利润","营业收入"], unit:"%", std:"≥10%", maxScore:5,
+   calc: (d) => d["营业收入"] > 0 ? d["净利润"]/d["营业收入"]*100 : null,
+   green: v=>v>=10, yellow: v=>v>=5, note:"企业最终盈利水平"},
+  {id:3, dim:"盈利能力", name:"净资产收益率ROE", inputs:["净利润","所有者权益"], unit:"%", std:"≥15%", maxScore:5,
+   calc: (d) => d["所有者权益"] > 0 ? d["净利润"]/d["所有者权益"]*100 : null,
+   green: v=>v>=15, yellow: v=>v>=8, note:"股东回报率"},
+  {id:4, dim:"盈利能力", name:"总资产报酬率ROA", inputs:["净利润","总资产"], unit:"%", std:"≥5%", maxScore:3,
+   calc: (d) => d["总资产"] > 0 ? d["净利润"]/d["总资产"]*100 : null,
+   green: v=>v>=5, yellow: v=>v>=2, note:"全部资产获利能力"},
+  // 偿债能力
+  {id:5, dim:"偿债能力", name:"流动比率", inputs:["流动资产","流动负债"], unit:"倍", std:"1.5~2.0", maxScore:4,
+   calc: (d) => d["流动负债"] > 0 ? d["流动资产"]/d["流动负债"] : null,
+   green: v=>v>=1.5&&v<=2.0, yellow: v=>v>=1.0&&v<=3.0, note:"短期偿债能力"},
+  {id:6, dim:"偿债能力", name:"速动比率", inputs:["流动资产","存货","流动负债"], unit:"倍", std:"≥1.0", maxScore:3,
+   calc: (d) => d["流动负债"] > 0 ? (d["流动资产"]-d["存货"])/d["流动负债"] : null,
+   green: v=>v>=1.0, yellow: v=>v>=0.5, note:"剔除存货的短期偿债"},
+  {id:7, dim:"偿债能力", name:"资产负债率", inputs:["负债总额","资产总额"], unit:"%", std:"40%~60%", maxScore:5,
+   calc: (d) => d["资产总额"] > 0 ? d["负债总额"]/d["资产总额"]*100 : null,
+   green: v=>v>=40&&v<=60, yellow: v=>v>=20&&v<=80, note:"负债水平适中最好"},
+  {id:8, dim:"偿债能力", name:"利息保障倍数", inputs:["息税前利润","利息费用"], unit:"倍", std:"≥3", maxScore:3,
+   calc: (d) => d["利息费用"] > 0 ? d["息税前利润"]/d["利息费用"] : null,
+   green: v=>v>=3, yellow: v=>v>=1.5, note:"支付利息能力"},
+  // 营运能力
+  {id:9, dim:"营运能力", name:"应收账款周转率", inputs:["营业收入","应收账款期初","应收账款期末"], unit:"次/年", std:"≥6", maxScore:5,
+   calc: (d) => (d["应收账款期初"]+d["应收账款期末"])>0 ? d["营业收入"]/((d["应收账款期初"]+d["应收账款期末"])/2) : null,
+   green: v=>v>=6, yellow: v=>v>=3, note:"回款速度"},
+  {id:10, dim:"营运能力", name:"存货周转率", inputs:["营业成本","存货期初","存货期末"], unit:"次/年", std:"≥4", maxScore:4,
+   calc: (d) => (d["存货期初"]+d["存货期末"])>0 ? d["营业成本"]/((d["存货期初"]+d["存货期末"])/2) : null,
+   green: v=>v>=4, yellow: v=>v>=2, note:"存货变现速度"},
+  {id:11, dim:"营运能力", name:"总资产周转率", inputs:["营业收入","总资产期初","总资产期末"], unit:"次/年", std:"≥0.8", maxScore:3,
+   calc: (d) => (d["总资产期初"]+d["总资产期末"])>0 ? d["营业收入"]/((d["总资产期初"]+d["总资产期末"])/2) : null,
+   green: v=>v>=0.8, yellow: v=>v>=0.4, note:"资产运营效率"},
+  // 成长能力
+  {id:12, dim:"成长能力", name:"营收增长率", inputs:["本期营业收入","上期营业收入"], unit:"%", std:"≥10%", maxScore:5,
+   calc: (d) => d["上期营业收入"] ? (d["本期营业收入"]-d["上期营业收入"])/d["上期营业收入"]*100 : null,
+   green: v=>v>=10, yellow: v=>v>=0, note:"市场扩张速度"},
+  {id:13, dim:"成长能力", name:"净利润增长率", inputs:["本期净利润","上期净利润"], unit:"%", std:"≥10%", maxScore:4,
+   calc: (d) => d["上期净利润"] ? (d["本期净利润"]-d["上期净利润"])/d["上期净利润"]*100 : null,
+   green: v=>v>=10, yellow: v=>v>=0, note:"盈利增长势头"},
+  {id:14, dim:"成长能力", name:"总资产增长率", inputs:["本期总资产","上期总资产"], unit:"%", std:"≥5%", maxScore:3,
+   calc: (d) => d["上期总资产"] ? (d["本期总资产"]-d["上期总资产"])/d["上期总资产"]*100 : null,
+   green: v=>v>=5, yellow: v=>v>=0, note:"规模扩张速度"},
+  // 现金流能力
+  {id:15, dim:"现金流能力", name:"经营现金流/营收", inputs:["经营活动现金流净额","营业收入"], unit:"%", std:"≥10%", maxScore:5,
+   calc: (d) => d["营业收入"] > 0 ? d["经营活动现金流净额"]/d["营业收入"]*100 : null,
+   green: v=>v>=10, yellow: v=>v>=5, note:"收入转化为现金能力"},
+  {id:16, dim:"现金流能力", name:"现金利润匹配度", inputs:["经营活动现金流净额","净利润"], unit:"倍", std:"≥0.8", maxScore:4,
+   calc: (d) => d["净利润"] > 0 ? d["经营活动现金流净额"]/d["净利润"] : null,
+   green: v=>v>=0.8, yellow: v=>v>=0.4, note:"利润的现金保障"},
+  {id:17, dim:"现金流能力", name:"现金比率", inputs:["货币资金","流动负债"], unit:"倍", std:"≥0.3", maxScore:3,
+   calc: (d) => d["流动负债"] > 0 ? d["货币资金"]/d["流动负债"] : null,
+   green: v=>v>=0.3, yellow: v=>v>=0.15, note:"最严格短期偿债"},
+  // 税务健康度
+  {id:18, dim:"税务健康度", name:"综合税负率", inputs:["实际缴纳税费总额","营业收入"], unit:"%", std:"1%~5%", maxScore:5,
+   calc: (d) => d["营业收入"] > 0 ? d["实际缴纳税费总额"]/d["营业收入"]*100 : null,
+   green: v=>v>=1&&v<=5, yellow: v=>v>=0.5&&v<=8, note:"税负水平监测"},
+  {id:19, dim:"税务健康度", name:"所得税贡献率", inputs:["所得税费用","利润总额"], unit:"%", std:"15%~25%", maxScore:4,
+   calc: (d) => d["利润总额"] > 0 ? d["所得税费用"]/d["利润总额"]*100 : null,
+   green: v=>v>=15&&v<=25, yellow: v=>v>=10&&v<=30, note:"所得税合理性"},
+  {id:20, dim:"税务健康度", name:"发票合规评分", inputs:["发票合规评分（0-100）"], unit:"分", std:"≥80分", maxScore:4,
+   calc: (d) => Math.min(Math.max(d["发票合规评分（0-100）"]||0,0),100),
+   green: v=>v>=80, yellow: v=>v>=60, note:"发票管理规范性"} ];
+
+const DIM_ORDER = ["盈利能力","偿债能力","营运能力","成长能力","现金流能力","税务健康度"];
+const DIM_MAX = {};
+INDICATORS.forEach(ind => { DIM_MAX[ind.dim] = (DIM_MAX[ind.dim]||0) + ind.maxScore; });
+
+// ===== 所有字段去重 =====
+const allFields = [...new Set(INDICATORS.flatMap(ind => ind.inputs))];
+
+// ===== 字段分组（按维度） =====
+const fieldGroups = {
+  "利润表数据": ["营业收入","营业成本","净利润","息税前利润","利润总额","所得税费用"],
+  "资产与负债": ["总资产","资产总额","流动资产","存货","负债总额","流动负债","所有者权益","货币资金"],
+  "应收账款与存货(期初期末)": ["应收账款期初","应收账款期末","存货期初","存货期末","总资产期初","总资产期末"],
+  "本期与上期对比": ["本期营业收入","上期营业收入","本期净利润","上期净利润","本期总资产","上期总资产"],
+  "现金流与税务": ["经营活动现金流净额","实际缴纳税费总额","发票合规评分（0-100）","利息费用"]
+};
+
+// ===== 构建录入表单 =====
+function buildInputForm() {
+  const container = document.getElementById("inputGroups");
+  container.innerHTML = "";
+  for (const [groupName, fields] of Object.entries(fieldGroups)) {
+    const div = document.createElement("div");
+    div.className = "input-group";
+    div.innerHTML = `<div class="input-group-title">${groupName}</div>` +
+      fields.map(f => `<div class="input-row"><label>${f}</label><input type="number" step="any" id="f_${f}" placeholder="请输入" oninput="autoCalc=false"></div>`).join("");
+    container.appendChild(div);
+  }
+}
+
+// ===== 读取数据 =====
+function readData() {
+  const d = {};
+  for (const f of allFields) {
+    const el = document.getElementById("f_"+f);
+    d[f] = el && el.value ? parseFloat(el.value) : 0;
+  }
+  return d;
+}
+
+// ===== 计算 =====
+function calcAndShow() {
+  const data = readData();
+  // 检查是否有填数据
+  const filled = allFields.filter(f => data[f] && data[f] !== 0);
+  if (filled.length < 3) {
+    alert("请先在「填数据」页面至少填写3个以上的财务数据！");
+    switchTab("input");
+    return;
+  }
+
+  // 计算每个指标
+  const results = INDICATORS.map(ind => {
+    let val = null;
+    try { val = ind.calc(data); } catch(e) {}
+    let score = 0, status = "未计算";
+    if (val !== null && !isNaN(val)) {
+      if (ind.green(val)) { score = ind.maxScore; status = "green"; }
+      else if (ind.yellow(val)) { score = Math.round(ind.maxScore * 0.6 * 10) / 10; status = "yellow"; }
+      else { score = Math.round(ind.maxScore * 0.2 * 10) / 10; status = "red"; }
+    }
+    return { ...ind, val, score, status };
+  });
+
+  // 维度汇总
+  const dimScores = {};
+  results.forEach(r => {
+    if (!dimScores[r.dim]) dimScores[r.dim] = {actual:0, max:0};
+    dimScores[r.dim].actual += r.score;
+    dimScores[r.dim].max += r.maxScore;
+  });
+
+  const totalScore = Object.values(dimScores).reduce((s, d) => s + d.actual, 0);
+  const totalMax = Object.values(dimScores).reduce((s, d) => s + d.max, 0);
+  const rate = totalMax > 0 ? Math.round(totalScore / totalMax * 100) : 0;
+
+  // 评级
+  let grade, suggestion;
+  if (rate >= 90) { grade = "AAA 非常健康"; suggestion = "🎉 企业财务非常健康！继续保持"; }
+  else if (rate >= 80) { grade = "AA 状况良好"; suggestion = "👍 财务状况良好，建议定期体检"; }
+  else if (rate >= 70) { grade = "A 基本健康"; suggestion = "📌 基本健康，部分指标仍有提升空间"; }
+  else if (rate >= 60) { grade = "BBB 存在一定风险"; suggestion = "⚠️ 部分指标需关注，建议全面诊断"; }
+  else if (rate >= 50) { grade = "BB 风险较高"; suggestion = "🔴 风险较高，建议尽快咨询财税专家"; }
+  else { grade = "B 风险很高"; suggestion = "🔴 风险很高，强烈建议立即诊断！"; }
+
+  // 渲染总分卡
+  document.getElementById("scoreCard").innerHTML =
+    `<div class="label">综合评分</div>
+     <div class="score">${totalScore}/${totalMax}</div>
+     <div class="grade">${grade}</div>
+     <div class="suggestion">${suggestion}</div>`;
+
+  // 渲染维度卡片
+  const dimGrid = document.getElementById("dimGrid");
+  dimGrid.innerHTML = DIM_ORDER.map(dim => {
+    const s = dimScores[dim] || {actual:0, max:0};
+    const r = s.max > 0 ? Math.round(s.actual/s.max*100) : 0;
+    let color = "#16a34a";
+    if (r < 60) color = "#dc2626";
+    else if (r < 80) color = "#d97706";
+    return `<div class="dim-card">
+      <div class="name">${dim}</div>
+      <div class="score" style="color:${color}">${s.actual}</div>
+      <div class="max">/ ${s.max} 分</div>
+      <div class="rate">得分率 ${r}%</div>
+    </div>`;
+  }).join("");
+
+  // 渲染指标表格
+  const table = document.getElementById("indicatorTable");
+  table.style.display = "block";
+  const rows = document.getElementById("indicatorRows");
+  rows.innerHTML = results.map(r => {
+    const valStr = r.val !== null && !isNaN(r.val) ? (r.unit === "%" ? r.val.toFixed(1)+"%" : r.val.toFixed(2)) : "—";
+    const statusMap = {green: "🟢 健康", yellow: "🟡 关注", red: "🔴 预警"};
+    const clsMap = {green: "status-green", yellow: "status-yellow", red: "status-red"};
+    return `<div class="table-row">
+      <span class="col-name">${r.name}</span>
+      <span class="col-value">${valStr}</span>
+      <span class="col-score">${r.score > 0 ? r.score : "—"}</span>
+      <span class="col-status ${clsMap[r.status]||''}">${statusMap[r.status]||"⏳"}</span>
+      <span class="col-detail">${r.note}</span>
+    </div>`;
+  }).join("");
+
+  switchTab("report");
+}
+
+// ===== 分享 =====
+function shareResult() {
+  const data = readData();
+  const filled = allFields.filter(f => data[f] && data[f] !== 0);
+  if (filled.length < 3) { alert("请先填数据！"); return; }
+  // 用截图方式：建议用户截屏
+  alert("📱 请截屏保存本页面，即可分享给客户或发朋友圈！\n\n或者点击右上角「···」选择「发送给朋友」");
+}
+
+// ===== 清空 =====
+function resetAll() {
+  if (!confirm("确定要清空所有已填数据吗？")) return;
+  allFields.forEach(f => {
+    const el = document.getElementById("f_"+f);
+    if (el) el.value = "";
+  });
+}
+
+// ===== Tab切换 =====
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-"+name));
+  // 滚动到顶部
+  window.scrollTo(0, 0);
+}
+
+// ===== 初始化 =====
+buildInputForm();
+</script>
+</body>
+</html>
