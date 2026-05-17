@@ -5,137 +5,108 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>企业财务健康体检</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: #f0f2f5; color: #333; padding-bottom: 60px; min-height: 100vh;
-}
-/* ===== 顶部 ===== */
-.header {
-  background: linear-gradient(135deg, #1a237e, #3b82f6);
-  color: white; padding: 32px 20px 24px; text-align: center;
-}
-.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-.header p { font-size: 13px; opacity: 0.85; }
-.header .badge {
-  display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px;
-  padding: 4px 14px; font-size: 11px; margin-top: 8px;
-}
-/* ===== Tab导航 ===== */
-.tabs {
-  display: flex; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  position: sticky; top: 0; z-index: 10;
-}
-.tab {
-  flex: 1; text-align: center; padding: 14px 0; font-size: 14px; font-weight: 500;
-  color: #888; cursor: pointer; border-bottom: 3px solid transparent; transition: all .2s;
-}
-.tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
-.tab .count { display: inline-block; background: #e8ecf1; color: #888; border-radius: 10px;
-  padding: 0 8px; font-size: 11px; margin-left: 4px; }
-.tab.active .count { background: #e0ecff; color: #3b82f6; }
-/* ===== 面板 ===== */
-.panel { display: none; }
-.panel.active { display: block; }
-/* ===== 录入区 ===== */
-.input-section { padding: 16px; }
-.input-group {
-  background: white; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 12px;
-}
-.input-group-title {
-  background: #f8f9fc; padding: 10px 16px; font-size: 13px; font-weight: 600;
-  color: #1a237e; border-bottom: 1px solid #eef0f4;
-}
-.input-row {
-  display: flex; align-items: center; padding: 8px 16px;
-  border-bottom: 1px solid #f5f6f8;
-}
-.input-row:last-child { border-bottom: none; }
-.input-row label { flex: 1; font-size: 14px; color: #444; }
-.input-row input {
-  width: 130px; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px;
-  font-size: 14px; text-align: right; background: #fffbe6; outline: none;
-  transition: border-color .2s;
-}
-.input-row input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
-.input-row input::placeholder { color: #bbb; font-size: 12px; }
-/* ===== 报告区 ===== */
-.report-section { padding: 16px; }
-/* 总分卡片 */
-.score-card {
-  background: linear-gradient(135deg, #1a237e, #3b82f6); border-radius: 16px;
-  padding: 24px; color: white; text-align: center; margin-bottom: 16px;
-}
-.score-card .label { font-size: 12px; opacity: 0.8; }
-.score-card .score { font-size: 48px; font-weight: 800; margin: 4px 0; }
-.score-card .grade { font-size: 18px; font-weight: 600; opacity: 0.95; }
-.score-card .suggestion { font-size: 13px; opacity: 0.85; margin-top: 4px; }
-/* 维度汇总 */
-.dim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.dim-card {
-  background: white; border-radius: 12px; padding: 16px; text-align: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-}
-.dim-card .name { font-size: 12px; color: #888; margin-bottom: 4px; }
-.dim-card .score { font-size: 22px; font-weight: 700; }
-.dim-card .max { font-size: 11px; color: #999; }
-.dim-card .rate { font-size: 11px; margin-top: 2px; }
-/* 指标表格 */
-.indicator-table {
-  background: white; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px;
-}
-.indicator-table .table-header {
-  display: flex; background: #f0f4ff; padding: 10px 12px; font-size: 11px; font-weight: 600; color: #555;
-}
-.indicator-table .table-row {
-  display: flex; padding: 10px 12px; font-size: 12px; border-bottom: 1px solid #f0f2f5;
-  align-items: center;
-}
-.indicator-table .table-row:last-child { border-bottom: none; }
-.col-name { flex: 2.5; }
-.col-value { flex: 1; text-align: center; }
-.col-score { flex: 0.8; text-align: center; font-weight: 600; }
-.col-status { flex: 1; text-align: center; font-weight: 600; }
-.col-detail { flex: 2; text-align: left; font-size: 11px; color: #888; padding-left: 4px; }
-.status-green { color: #16a34a; }
-.status-yellow { color: #d97706; }
-.status-red { color: #dc2626; }
-/* 说明页 */
-.help-section { padding: 16px; }
-.help-card {
-  background: white; border-radius: 12px; padding: 20px; margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-}
-.help-card h3 { font-size: 15px; margin-bottom: 10px; color: #1a237e; }
-.help-card p, .help-card li { font-size: 13px; color: #555; line-height: 1.8; }
-.help-card ol { padding-left: 20px; }
-.help-card .green { color: #16a34a; }
-.help-card .yellow { color: #d97706; }
-.help-card .red { color: #dc2626; }
-.help-card .contact { background: #f0f4ff; border-radius: 10px; padding: 14px; margin-top: 12px;
-  text-align: center; }
-.help-card .contact strong { color: #1a237e; display: block; font-size: 16px; margin-bottom: 4px; }
-/* 底部按钮 */
-.fixed-bottom {
-  position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 0;
-  background: white; box-shadow: 0 -2px 8px rgba(0,0,0,0.08); z-index: 20;
-}
-.fixed-bottom button {
-  flex: 1; border: none; padding: 14px; font-size: 15px; font-weight: 600;
-  cursor: pointer; transition: all .2s;
-}
-.btn-primary { background: #3b82f6; color: white; }
-.btn-primary:active { background: #2563eb; }
-.btn-secondary { background: #f0f2f5; color: #333; }
-.btn-secondary:active { background: #e0e2e5; }
-/* 标签页固定底部 */
-#tabHelp .fixed-bottom { display: flex; }
-@media (min-width: 500px) {
-  body { max-width: 480px; margin: 0 auto; background: #e8eaed; }
-  .header { border-radius: 0 0 20px 20px; }
-}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:#f0f2f5; color:#2d3436; padding-bottom:60px; }
+.header { background:linear-gradient(135deg,#1a237e,#3b82f6); color:white; padding:32px 20px 24px; text-align:center; }
+.header h1 { font-size:22px; font-weight:700; margin-bottom:6px; }
+.header p { font-size:13px; opacity:0.85; }
+.header .badge { display:inline-block; background:rgba(255,255,255,0.2); border-radius:20px; padding:4px 14px; font-size:11px; margin-top:8px; }
+.tabs { display:flex; background:white; box-shadow:0 1px 4px rgba(0,0,0,0.08); position:sticky; top:0; z-index:10; }
+.tab { flex:1; text-align:center; padding:14px 0; font-size:14px; font-weight:500; color:#888; cursor:pointer; border-bottom:3px solid transparent; transition:all .2s; }
+.tab.active { color:#1a237e; border-bottom-color:#1a237e; }
+.panel { display:none; padding:16px; }
+.panel.active { display:block; }
+.card { background:white; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:12px; }
+.card-title { background:#f0f4ff; padding:10px 16px; font-size:13px; font-weight:600; color:#1a237e; border-bottom:1px solid #e0e7ff; }
+.form-row { padding:10px 16px; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.form-row label { font-size:13px; color:#444; min-width:150px; flex-shrink:0; }
+.form-row input,.form-row select { padding:8px 12px; border:1px solid #e0e0e0; border-radius:8px; font-size:13px; flex:1; min-width:80px; max-width:200px; background:#fff8e1; line-height:44px; height:44px; }
+.form-row input:focus,.form-row select:focus { outline:none; border-color:#3b82f6; }
+.form-row .unit { font-size:12px; color:#888; }
+.yesno { display:flex; gap:8px; }
+.yesno span { padding:4px 16px; border-radius:16px; font-size:13px; cursor:pointer; border:1px solid #ddd; color:#666; }
+.yesno span.sel-yes { background:linear-gradient(135deg,#1a237e,#3b82f6); color:white; border-color:#3b82f6; }
+.yesno span.sel-no { background:#e8ecf1; color:#999; border-color:#ddd; }
+.fixed-bottom { position:sticky; bottom:0; background:white; padding:12px 16px; display:flex; gap:10px; box-shadow:0 -2px 8px rgba(0,0,0,0.06); z-index:10; }
+.fixed-bottom button { flex:1; padding:12px; border-radius:10px; font-size:14px; font-weight:600; border:none; cursor:pointer; }
+.btn-primary { background:linear-gradient(135deg,#1a237e,#3b82f6); color:white; }
+.btn-primary:hover { opacity:0.9; }
+.btn-secondary { background:#e8ecf1; color:#555; }
+
+.score-card { background:linear-gradient(135deg,#1a237e,#3b82f6); color:white; border-radius:16px; padding:28px 20px; text-align:center; margin-bottom:16px; }
+.score-card .label { font-size:13px; opacity:0.85; }
+.score-card .score { font-size:40px; font-weight:800; margin:6px 0; }
+.score-card .grade { font-size:16px; font-weight:600; margin-bottom:4px; }
+.score-card .suggestion { font-size:13px; opacity:0.9; line-height:1.6; }
+.result-summary { background:linear-gradient(135deg,#1a237e,#3b82f6); color:white; border-radius:16px; padding:28px 20px; text-align:center; margin-bottom:16px; }
+.result-summary .row { display:flex; justify-content:space-around; margin-top:12px; flex-wrap:wrap; gap:8px; }
+.result-summary .item { flex:1; min-width:100px; }
+.result-summary .item .label { font-size:11px; opacity:0.85; }
+.result-summary .item .val { font-size:22px; font-weight:800; margin:4px 0; }
+.result-summary .item .sub { font-size:12px; opacity:0.85; }
+
+.dim-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
+.dim-card { background:white; border-radius:12px; padding:16px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.dim-card .name { font-size:12px; color:#888; margin-bottom:4px; }
+.dim-card .dscore { font-size:20px; font-weight:700; }
+.dim-card .dstatus { font-size:11px; margin-top:4px; padding:2px 10px; border-radius:10px; display:inline-block; }
+.low { background:#e6f7e6; color:#16a34a; }
+.mid { background:#fef9e7; color:#d97706; }
+.high { background:#feeaea; color:#dc2626; }
+.pass { background:#e6f7e6; color:#16a34a; }
+.warn { background:#fef9e7; color:#d97706; }
+.danger { background:#feeaea; color:#dc2626; }
+.fail { background:#feeaea; color:#dc2626; }
+.caution { background:#fef9e7; color:#d97706; }
+.rate-green { background:#e6f7e6; color:#16a34a; }
+.rate-yellow { background:#fef9e7; color:#d97706; }
+.rate-red { background:#feeaea; color:#dc2626; }
+
+.help-card { background:white; border-radius:12px; padding:20px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.help-card h3 { font-size:15px; margin-bottom:8px; color:#1a237e; }
+.help-card p,.help-card li { font-size:13px; color:#555; line-height:1.8; }
+.check-list { list-style:none; padding:0; }
+.check-list li { padding:6px 0; font-size:13px; color:#444; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:8px; }
+.check-list li:last-child { border-bottom:none; }
+.detail-item { padding:12px 16px; border-bottom:1px solid #f5f5f5; display:flex; justify-content:space-between; align-items:center; }
+.detail-item:last-child { border-bottom:none; }
+.detail-item .dlabel { font-size:13px; color:#555; }
+.detail-item .dval { font-size:14px; font-weight:600; }
+.detail-item .dval.pass { color:#16a34a; }
+.detail-item .dval.warn { color:#d97706; }
+.detail-item .dval.danger { color:#dc2626; }
+.result-card { background:white; border-radius:12px; padding:16px; margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.result-card h3 { font-size:14px; color:#1a237e; margin-bottom:8px; }
+.result-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f5f5f5; font-size:13px; }
+.result-row:last-child { border-bottom:none; }
+.result-row .label { color:#555; }
+.result-row .val { font-weight:600; }
+.result-row.total { border-top:2px solid #1a237e; padding-top:8px; margin-top:4px; font-weight:700; }
+.result-row.total .val { color:#1a237e; font-size:16px; }
+.result-green { color:#16a34a; }
+.result-red { color:#dc2626; }
+.result-orange { color:#d97706; }
+
+.member-banner { background:linear-gradient(135deg,#0f0c29,#302b63,#24243e); border-radius:12px; padding:20px; text-align:center; margin-top:16px; }
+.member-banner h3 { font-size:15px; color:white; margin-bottom:6px; }
+.member-banner p { font-size:12px; color:rgba(255,255,255,0.85); line-height:1.6; }
+.member-banner .btn { display:inline-block; background:white; color:#1a237e; padding:8px 24px; border-radius:20px; text-decoration:none; font-size:13px; font-weight:600; margin-top:8px; }
+
+.contact { background:#eef2ff; border-radius:8px; padding:12px; }
+.contact strong { font-size:14px; color:#1a237e; }
+.scenario-grid { display:flex; gap:8px; }
+.scenario-btn { flex:1; padding:10px; border-radius:8px; font-size:13px; font-weight:600; border:2px solid #ddd; background:white; color:#888; cursor:pointer; text-align:center; transition:all .2s; }
+.scenario-btn.active { border-color:#3b82f6; color:#1a237e; background:#eef2ff; }
+.chart-area { background:white; border-radius:16px; padding:20px; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:16px; text-align:center; }
+.chart-area canvas { max-width:100%; height:auto; }
+.form-row input[type=range] { flex:1; min-width:120px; max-width:250px; accent-color:#3b82f6; }
+.form-row .val { font-size:14px; font-weight:700; color:#1a237e; min-width:30px; text-align:right; }
+.form-row .hint { font-size:11px; color:#999; }
+.dim-card .bar-bg { position:absolute; bottom:0; left:0; height:4px; background:#e8ecf1; width:100%; }
+.dim-card .bar-fill { position:absolute; bottom:0; left:0; height:4px; transition:width .5s; }
+
+@media (max-width:480px){.dim-grid{grid-template-columns:1fr 1fr}.result-summary .row{flex-direction:column;gap:4px}}
+
 </style>
 </head>
 <body>
@@ -145,6 +116,13 @@ body {
   <h1>🏥 企业财务健康体检</h1>
   <p>填写数据 · 自动出结果</p>
   <div class="badge">您身边的财税专家 · 洪淳宇</div>
+</div>
+
+<!-- 上传区 -->
+<div style="background:#e8f0fe;border-radius:12px;margin:12px 16px;padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+  <span style="font-size:13px;color:#1a237e;font-weight:600;">📎 上传Excel自动填表</span>
+  <input type="file" id="fileInput" accept=".xlsx,.xls" style="font-size:12px;flex:1;min-width:140px" onchange="parseExcel(this)">
+  <span style="font-size:11px;color:#888;">支持资产负债表、利润表</span>
 </div>
 
 <!-- Tab导航 -->
@@ -229,7 +207,104 @@ body {
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+// ===== 上传Excel自动填表 =====
+function parseExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array', codepage:936});
+      let bsData=null, plData=null;
+      // 按sheet名或内容识别
+      wb.SheetNames.forEach(name => {
+        const ws = wb.Sheets[name];
+        const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        if (name.includes("资产") || name.includes("负债")) bsData = json;
+        else if (name.includes("利润")) plData = json;
+        else if (!bsData && !plData) { // 按内容自动检测
+          const txt = json.flat().join('');
+          if (txt.includes('资产')||txt.includes('负债')) bsData = json;
+          else if (txt.includes('利润')||txt.includes('营业')) plData = json;
+        }
+      });
+      if (bsData) parseBS(bsData);
+      if (plData) parsePL(plData);
+      // 数据期初期末分摊
+      copyPeriodData();
+      if (bsData || plData) {
+        document.getElementById('fileInput').style.border='2px solid #16a34a';
+        alert('✅ 已自动填入！请核对数据后查看体检报告。');
+      } else {
+        alert('⚠️ 未识别到资产负债表或利润表，请检查文件格式。');
+      }
+    } catch(err) {
+      alert('读取失败：'+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function findVal(rows, labelLike) {
+  for (let r of rows) {
+    for (let i=0; i<r.length; i++) {
+      const cell = String(r[i]||'').trim();
+      if (cell.includes(labelLike)) {
+        // 取右边最近的数字
+        for (let j=i+1; j<r.length; j++) {
+          const v = parseFloat(r[j]);
+          if (!isNaN(v)) return v;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+function parseBS(rows) {
+  const fields = ['货币资金','应收账款期末','存货期末','流动资产','资产总额','流动负债','负债总额','所有者权益'];
+  const labels = ['货币资金','应收账款','存货','流动资产合计','资产总计','流动负债合计','负债合计','所有者权益合计'];
+  fields.forEach((f, idx) => {
+    const el = document.getElementById('f_'+f);
+    if (el) el.value = findVal(rows, labels[idx]);
+  });
+}
+
+function parsePL(rows) {
+  const map = [['营业收入','营业收入'],['营业成本','营业成本'],['息税前利润','营业利润'],
+    ['利润总额','利润总额'],['所得税费用','所得税费用'],['净利润','净利润'],['利息费用','利息费用']];
+  map.forEach(([field, label]) => {
+    const el = document.getElementById('f_'+field);
+    if (el) el.value = findVal(rows, label);
+  });
+}
+
+function copyPeriodData() {
+  // 本期=当前值，上期留空让用户手动填
+  const pairs = [['营业收入','本期营业收入'],['净利润','本期净利润'],['总资产','本期总资产']];
+  pairs.forEach(([src, dst]) => {
+    const se = document.getElementById('f_'+src);
+    const de = document.getElementById('f_'+dst);
+    if (se && de && se.value && !de.value) de.value = se.value;
+  });
+  // 期初=期末（近似）
+  const initPairs = [['应收账款期末','应收账款期初'],['存货期末','存货期初'],['资产总额','总资产期初'],['资产总额','总资产期末']];
+  initPairs.forEach(([src, dst]) => {
+    const se = document.getElementById('f_'+src);
+    const de = document.getElementById('f_'+dst);
+    if (se && de && se.value && !de.value) de.value = se.value;
+  });
+  // 上期
+  const prevPairs = [['营业收入','上期营业收入'],['净利润','上期净利润'],['资产总额','上期总资产']];
+  prevPairs.forEach(([src, dst]) => {
+    const se = document.getElementById('f_'+src);
+    const de = document.getElementById('f_'+dst);
+    if (se && de && se.value && !de.value) de.value = Math.round(se.value * 0.9);
+  });
+}
+
 // ===== 指标定义 =====
 const INDICATORS = [
   // 盈利能力
