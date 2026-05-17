@@ -384,7 +384,7 @@ function parseBS(rows) {
 
 function parsePL(rows) {
   const dataCol = detectDataCol(rows, ['本年累计','本年累计数','本年累计金额','本期金额','本期数']);
-  const monthCol = detectDataCol(rows, ['本月数','本月金额','本期金额','本期数']); // 可能和dataCol一样
+  const monthCol = detectDataCol(rows, ['本月数','本月金额','本期金额','本期数']);
   
   const map = [
     ['营业收入',   ['一、营业收入','营业收入','主营业务收入','营业总收入']],
@@ -395,13 +395,16 @@ function parsePL(rows) {
     ['净利润',     ['净利润','四、净利润']],
     ['利息费用',   ['财务费用','利息费用']],
   ];
+  let debugInfo = [];
   map.forEach(([field, labels]) => {
     const el = document.getElementById('f_'+field);
-    if (!el) return;
-    if (el.value && el.value !== '0') return;
-    el.value = findSmart(rows, labels, dataCol);
+    if (!el) { debugInfo.push(field+':找不到input'); return; }
+    if (el.value && el.value !== '0') { debugInfo.push(field+'=已有值'+el.value); return; }
+    const val = findSmart(rows, labels, dataCol);
+    el.value = val;
+    debugInfo.push(field+'='+val);
   });
-  // 上期数（用本月数×12估算）
+  // 上期数
   const prevMap = [['上期营业收入',['一、营业收入','营业收入','主营业务收入']],['上期净利润',['净利润','四、净利润']],['上期总资产',['资产总计','资产总额']]];
   prevMap.forEach(([field, labels]) => {
     const el = document.getElementById('f_'+field);
@@ -409,19 +412,23 @@ function parsePL(rows) {
     const monthly = findSmart(rows, labels, monthCol);
     if (monthly && monthly !== 0) el.value = Math.round(monthly * 12);
   });
-  // 利息费用如果没取到，用财务费用*0.7估算
+  // 利息费用
   const interestEl = document.getElementById('f_利息费用');
   if (interestEl && (!interestEl.value || interestEl.value === '0')) {
     const finCost = findSmart(rows, ['财务费用'], dataCol);
     if (finCost && finCost !== 0) interestEl.value = Math.round(finCost * 0.7);
   }
-  // 本期数同步
+  // 本期数
   const periodMap = [['本期营业收入',['一、营业收入','营业收入','主营业务收入']],['本期净利润',['净利润','四、净利润']],['本期总资产',['资产总计','资产总额']]];
   periodMap.forEach(([field, labels]) => {
     const el = document.getElementById('f_'+field);
     if (!el || (el.value && el.value !== '0')) return;
     el.value = findSmart(rows, labels, dataCol);
   });
+  // 弹窗显示调试信息
+  setTimeout(() => {
+    alert('📋 利润表解析结果：\n' + debugInfo.join('\n') + '\n\n请切换到「填数据」标签查看输入框');
+  }, 100);
 }
 
 function copyPeriodData() {
