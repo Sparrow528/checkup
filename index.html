@@ -786,9 +786,194 @@ function calcAndShow() {
 function shareResult() {
   const data = readData();
   const filled = allFields.filter(f => data[f] && data[f] !== 0);
-  if (filled.length < 3) { alert("请先填数据！"); return; }
-  // 用截图方式：建议用户截屏
-  alert("📱 请截屏保存本页面，即可分享给客户或发朋友圈！\n\n或者点击右上角「···」选择「发送给朋友」");
+  if (filled.length < 3) { alert("请先在「填数据」页面填写财务数据！"); return; }
+  
+  // 重新计算一遍报告数据
+  const results = INDICATORS.map(ind => {
+    let val = null;
+    try { val = ind.calc(data); } catch(e) {}
+    let score = 0, status = "未计算";
+    if (val !== null && !isNaN(val)) {
+      if (ind.green(val)) { score = ind.maxScore; status = "green"; }
+      else if (ind.yellow(val)) { score = Math.round(ind.maxScore * 0.6 * 10) / 10; status = "yellow"; }
+      else { score = Math.round(ind.maxScore * 0.2 * 10) / 10; status = "red"; }
+    }
+    return { ...ind, val, score, status };
+  });
+  
+  const dimScores = {};
+  results.forEach(r => {
+    if (!dimScores[r.dim]) dimScores[r.dim] = {actual:0, max:0};
+    dimScores[r.dim].actual += r.score;
+    dimScores[r.dim].max += r.maxScore;
+  });
+  const totalScore = Object.values(dimScores).reduce((s, d) => s + d.actual, 0);
+  const totalMax = Object.values(dimScores).reduce((s, d) => s + d.max, 0);
+  const rate = totalMax > 0 ? Math.round(totalScore / totalMax * 100) : 0;
+  
+  let grade, suggestion;
+  if (rate >= 90) { grade = "AAA 非常健康"; suggestion = "🎉 企业财务非常健康！继续保持"; }
+  else if (rate >= 80) { grade = "AA 状况良好"; suggestion = "👍 财务状况良好，建议定期体检"; }
+  else if (rate >= 70) { grade = "A 基本健康"; suggestion = "📌 基本健康，部分指标仍有提升空间"; }
+  else if (rate >= 60) { grade = "BBB 存在一定风险"; suggestion = "⚠️ 部分指标需关注，建议全面诊断"; }
+  else if (rate >= 50) { grade = "BB 风险较高"; suggestion = "🔴 风险较高，建议尽快咨询财税专家"; }
+  else { grade = "B 风险很高"; suggestion = "🔴 风险很高，强烈建议立即诊断！"; }
+  
+  // 维度颜色
+  const dimColorMap = {green:"#16a34a", yellow:"#d97706", red:"#dc2626"};
+  const statusColor = {green:["#e6f7e6","#16a34a"], yellow:["#fef9e7","#d97706"], red:["#feeaea","#dc2626"]};
+  
+  // 构建分享页面HTML
+  let sh = '<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\">';
+  sh += '<meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\">';
+  sh += '<title>企业财务健康体检报告 - 宇守信咨询</title>';
+  sh += '<style>';
+  sh += '*{margin:0;padding:0;box-sizing:border-box}';
+  sh += 'body{font-family:-apple-system,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;background:#f0f4f8;color:#333;padding:0 0 30px}';
+  sh += '.report-header{background:linear-gradient(135deg,#065f46,#059669);color:white;padding:28px 20px 24px;text-align:center}';
+  sh += '.report-header h1{font-size:20px;font-weight:700;margin-bottom:4px}';
+  sh += '.report-header .sub{font-size:12px;opacity:.8;margin-bottom:8px}';
+  sh += '.report-header .badge{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 12px;font-size:10px}';
+  sh += '.content{padding:14px;max-width:580px;margin:0 auto}';
+  
+  // 总分卡
+  sh += '.score-card{background:linear-gradient(135deg,#065f46,#059669);border-radius:16px;padding:24px 20px;text-align:center;color:white;margin-bottom:16px}';
+  sh += '.score-card .label{font-size:12px;opacity:.8}';
+  sh += '.score-card .num{font-size:38px;font-weight:800;margin:4px 0}';
+  sh += '.score-card .grade{font-size:15px;font-weight:600;margin-bottom:2px}';
+  sh += '.score-card .sug{font-size:12px;opacity:.9;line-height:1.5}';
+  
+  // 维度网格
+  sh += '.dim-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}';
+  sh += '.dim-card{background:white;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}';
+  sh += '.dim-card .dn{font-size:11px;color:#888;margin-bottom:3px}';
+  sh += '.dim-card .ds{font-size:20px;font-weight:700}';
+  sh += '.dim-card .dm{font-size:11px;color:#999;margin-top:2px}';
+  sh += '.dim-card .dr{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;margin-top:4px}';
+  
+  // 详情卡片
+  sh += '.sec-card{background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:10px}';
+  sh += '.sec-title{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#065f46}';
+  sh += '.sec-row{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f8f8f8}';
+  sh += '.sec-row:last-child{border-bottom:none}';
+  sh += '.sec-row .info{flex:1}';
+  sh += '.sec-row .iname{font-size:13px;font-weight:600;color:#333}';
+  sh += '.sec-row .inote{font-size:10px;color:#999;margin-top:1px}';
+  sh += '.sec-row .ival{text-align:right;margin-left:8px}';
+  sh += '.sec-row .inum{font-size:13px;font-weight:700;color:#333}';
+  sh += '.sec-row .istd{font-size:10px;color:#999}';
+  sh += '.sec-row .itag{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px;white-space:nowrap}';
+  
+  // 营销区
+  sh += '.marketing{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);border-radius:14px;padding:22px 18px;text-align:center;color:white;margin:16px 0}';
+  sh += '.marketing h3{font-size:16px;font-weight:700;margin-bottom:4px}';
+  sh += '.marketing p{font-size:12px;opacity:.8;line-height:1.6;margin-bottom:10px}';
+  sh += '.marketing .btn{display:inline-block;background:white;color:#302b63;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none}';
+  
+  // 会员方案
+  sh += '.plans{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px}';
+  sh += '.plan-card{background:white;border-radius:10px;padding:12px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}';
+  sh += '.plan-card .pname{font-size:11px;font-weight:700}';
+  sh += '.plan-card .pprice{font-size:11px;color:#888;margin-top:2px}';
+  sh += '.plan-card .pbtn{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:6px;font-size:10px;text-decoration:none;font-weight:600}';
+  
+  sh += '.footer{text-align:center;padding:12px;font-size:10px;color:#999;line-height:1.6}';
+  sh += '@media (max-width:400px){.dim-grid{grid-template-columns:1fr}.plans{grid-template-columns:1fr}}';
+  sh += '</style></head><body>';
+  
+  // 头部
+  sh += '<div class=\"report-header\">';
+  sh += '<h1>🏥 企业财务健康体检报告</h1>';
+  sh += '<div class=\"sub\">宇守信咨询 · 洪淳宇</div>';
+  sh += '<div class=\"badge\">报告生成时间：' + new Date().toLocaleString() + '</div></div>';
+  
+  sh += '<div class=\"content\">';
+  
+  // 总分
+  sh += '<div class=\"score-card\">';
+  sh += '<div class=\"label\">综合评分</div>';
+  sh += '<div class=\"num\">' + totalScore + '/' + totalMax + '</div>';
+  sh += '<div class=\"grade\">' + grade + '</div>';
+  sh += '<div class=\"sug\">' + suggestion + '</div></div>';
+  
+  // 维度卡片
+  sh += '<div style="font-size:14px;font-weight:700;color:#065f46;margin-bottom:10px;">📊 六大维度评分</div>';
+  sh += '<div class=\"dim-grid\">';
+  DIM_ORDER.forEach(function(dim) {
+    var s = dimScores[dim] || {actual:0, max:0};
+    var r = s.max > 0 ? Math.round(s.actual/s.max*100) : 0;
+    var c = "#16a34a", bg = "#e6f7e6";
+    if (r < 60) { c = "#dc2626"; bg = "#feeaea"; }
+    else if (r < 80) { c = "#d97706"; bg = "#fef9e7"; }
+    sh += '<div class=\"dim-card\">';
+    sh += '<div class=\"dn\">' + dim + '</div>';
+    sh += '<div class=\"ds\" style=\"color:' + c + '\">' + s.actual + '</div>';
+    sh += '<div class=\"dm\">/ ' + s.max + ' 分</div>';
+    sh += '<div class=\"dr\" style=\"background:' + bg + ';color:' + c + '\">得分率 ' + r + '%</div></div>';
+  });
+  sh += '</div>';
+  
+  // 指标明细（按维度分组）
+  sh += '<div style="font-size:14px;font-weight:700;color:#065f46;margin-bottom:10px;">📋 指标明细</div>';
+  var dimGroups = {};
+  results.forEach(function(r) {
+    if (!dimGroups[r.dim]) dimGroups[r.dim] = [];
+    dimGroups[r.dim].push(r);
+  });
+  DIM_ORDER.forEach(function(dim) {
+    if (!dimGroups[dim] || dimGroups[dim].length === 0) return;
+    var items = dimGroups[dim];
+    var dt = items.reduce(function(s,r){return s+r.score;}, 0);
+    var dm = items.reduce(function(s,r){return s+r.maxScore;}, 0);
+    var dr = dm > 0 ? Math.round(dt/dm*100) : 0;
+    var dc = '#16a34a';
+    if (dr < 60) dc = '#dc2626';
+    else if (dr < 80) dc = '#d97706';
+    
+    sh += '<div class=\"sec-card\">';
+    sh += '<div class=\"sec-title\"><span>' + dim + '</span><span style=\"color:' + dc + '\">' + dt + '/' + dm + ' 分 (' + dr + '%)</span></div>';
+    
+    items.forEach(function(r) {
+      var valStr = r.val !== null && !isNaN(r.val) ? (r.unit === "%" ? r.val.toFixed(1)+"%" : r.val.toFixed(2)) : "—";
+      var sc = statusColor[r.status] || ["#f0f0f0","#999"];
+      sh += '<div class=\"sec-row\">';
+      sh += '<div class=\"info\"><div class=\"iname\">' + r.name + '</div><div class=\"inote\">' + r.note + '</div></div>';
+      sh += '<div class=\"ival\"><div class=\"inum\">' + valStr + '</div><div class=\"istd\">标准：' + r.std + '</div></div>';
+      sh += '<div class=\"itag\" style=\"background:' + sc[0] + ';color:' + sc[1] + '\">' + r.score + '分</div></div>';
+    });
+    sh += '</div>';
+  });
+  
+  // 营销区 — 会员方案
+  sh += '<div class=\"marketing\">';
+  sh += '<h3>🔒 免费版 · 基础指标</h3>';
+  sh += '<p>升级会员享完整诊断报告 + 定制优化建议 + 一对一咨询</p>';
+  sh += '<a class=\"btn\" href=\"https://sparrow528.github.io/tax-membership/\" target=\"_blank\">👉 了解会员方案</a></div>';
+  
+  // 三档方案
+  sh += '<div class=\"plans\">';
+  sh += '<div class=\"plan-card\"><div class=\"pname\">🥉 铜级</div><div class=\"pprice\">¥5,999/年</div><a class=\"pbtn\" style=\"background:#fff7ed;color:#b45309\" href=\"https://sparrow528.github.io/copper-toolbox/\" target=\"_blank\">了解 →</a></div>';
+  sh += '<div class=\"plan-card\"><div class=\"pname\">🥈 银级</div><div class=\"pprice\">¥29,999/年</div><a class=\"pbtn\" style=\"background:#f0f4ff;color:#1e3a6f\" href=\"https://sparrow528.github.io/silver-toolbox/\" target=\"_blank\">了解 →</a></div>';
+  sh += '<div class=\"plan-card\"><div class=\"pname\">🥇 金级</div><div class=\"pprice\">¥69,999/年</div><a class=\"pbtn\" style=\"background:#fef3c7;color:#7c3aed\" href=\"https://sparrow528.github.io/gold-toolbox/\" target=\"_blank\">了解 →</a></div>';
+  sh += '</div>';
+  
+  // 联系方式
+  sh += '<div style=\"background:white;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:14px;\">';
+  sh += '<div style=\"font-size:13px;font-weight:700;color:#065f46;margin-bottom:4px;\">👤 洪淳宇 · 您身边的财税专家</div>';
+  sh += '<div style=\"font-size:11px;color:#666;line-height:1.6;\">为企业提供专业财税合规、税务筹划、财务体检服务</div>';
+  sh += '<div style=\"font-size:11px;color:#999;margin-top:6px;\">📞 186-0129-4989</div></div>';
+  
+  // 免责
+  sh += '<div style=\"font-size:10px;color:#bbb;text-align:center;line-height:1.6;margin-bottom:10px;\">';
+  sh += '* 本报告由企业财务健康体检工具自动生成，仅供初步参考，不构成专业财务建议。<br>';
+  sh += '* 宇守信投资管理咨询（北京）有限公司 · 洪淳宇</div>';
+  
+  sh += '</div></body></html>';
+  
+  // 在新窗口打开
+  var win = window.open('', '_blank');
+  win.document.write(sh);
+  win.document.close();
 }
 
 // ===== 清空 =====
