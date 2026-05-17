@@ -516,26 +516,95 @@ INDICATORS.forEach(ind => { DIM_MAX[ind.dim] = (DIM_MAX[ind.dim]||0) + ind.maxSc
 // ===== 所有字段去重 =====
 const allFields = [...new Set(INDICATORS.flatMap(ind => ind.inputs))];
 
-// ===== 字段分组（按维度） =====
-const fieldGroups = {
-  "利润表数据": ["营业收入","营业成本","净利润","息税前利润","利润总额","所得税费用"],
-  "资产与负债": ["总资产","资产总额","流动资产","存货","负债总额","流动负债","所有者权益","货币资金"],
-  "应收账款与存货(期初期末)": ["应收账款期初","应收账款期末","存货期初","存货期末","总资产期初","总资产期末"],
-  "本期与上期对比": ["本期营业收入","上期营业收入","本期净利润","上期净利润","本期总资产","上期总资产"],
-  "现金流与税务": ["经营活动现金流净额","实际缴纳税费总额","发票合规评分（0-100）","利息费用"]
-};
+// ===== 字段分组（按维度）- 两列布局 =====
+// 左列：资产负债表相关
+const bsFields = [
+  {label:'货币资金', id:'货币资金'},
+  {label:'应收账款（期末）', id:'应收账款期末'},
+  {label:'应收账款（期初）', id:'应收账款期初'},
+  {label:'存货（期末）', id:'存货期末'},
+  {label:'存货（期初）', id:'存货期初'},
+  {label:'流动资产合计', id:'流动资产'},
+  {label:'资产总额', id:'资产总额'},
+  {label:'流动负债合计', id:'流动负债'},
+  {label:'负债合计', id:'负债总额'},
+  {label:'所有者权益合计', id:'所有者权益'},
+  {label:'总资产（期初）', id:'总资产期初'},
+  {label:'总资产（期末）', id:'总资产期末'},
+];
+// 右列：利润表相关
+const plFields = [
+  {label:'营业收入', id:'营业收入'},
+  {label:'营业成本', id:'营业成本'},
+  {label:'营业利润（息税前）', id:'息税前利润'},
+  {label:'利润总额', id:'利润总额'},
+  {label:'所得税费用', id:'所得税费用'},
+  {label:'净利润', id:'净利润'},
+  {label:'利息费用', id:'利息费用'},
+  {label:'本期营业收入', id:'本期营业收入'},
+  {label:'上期营业收入', id:'上期营业收入'},
+  {label:'本期净利润', id:'本期净利润'},
+  {label:'上期净利润', id:'上期净利润'},
+  {label:'本期总资产', id:'本期总资产'},
+  {label:'上期总资产', id:'上期总资产'},
+];
+// 底部：现金流与税务
+const extraFields = [
+  {label:'经营活动现金流净额', id:'经营活动现金流净额'},
+  {label:'实际缴纳税费总额', id:'实际缴纳税费总额'},
+  {label:'发票合规评分(0-100)', id:'发票合规评分（0-100）'},
+];
 
-// ===== 构建录入表单 =====
+// ===== 构建录入表单（两列布局） =====
 function buildInputForm() {
   const container = document.getElementById("inputGroups");
-  container.innerHTML = "";
-  for (const [groupName, fields] of Object.entries(fieldGroups)) {
-    const div = document.createElement("div");
-    div.className = "input-group";
-    div.innerHTML = `<div class="input-group-title">${groupName}</div>` +
-      fields.map(f => `<div class="input-row"><label>${f}</label><input type="number" step="any" id="f_${f}" placeholder="请输入" oninput="autoCalc=false"></div>`).join("");
-    container.appendChild(div);
+  var h = '';
+  h += '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;">';
+  // 左列：资产负债表
+  h += '<div style="flex:1;min-width:280px;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">';
+  h += '<div style="background:linear-gradient(135deg,#1a237e,#3b82f6);padding:12px 16px;">';
+  h += '<div style="font-size:14px;font-weight:700;color:white;">📋 资产负债表</div>';
+  h += '<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;">上传Excel自动填入 · 支持手动修改</div></div>';
+  h += '<div style="padding:4px 0;">';
+  for (var i=0;i<bsFields.length;i++) {
+    var f=bsFields[i];
+    h += '<div style="display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid #f5f5f5;">';
+    h += '<label style="flex:1;font-size:13px;color:#444;">'+f.label+'</label>';
+    h += '<input type="number" step="any" id="f_'+f.id+'" placeholder="0" ';
+    h += 'style="width:120px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right;background:#f0f4ff;outline:none;" ';
+    h += 'onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#e0e0e0\'"></div>';
   }
+  h += '</div></div>';
+  // 右列：利润表
+  h += '<div style="flex:1;min-width:280px;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">';
+  h += '<div style="background:linear-gradient(135deg,#1b5e20,#43a047);padding:12px 16px;">';
+  h += '<div style="font-size:14px;font-weight:700;color:white;">📊 利润表</div>';
+  h += '<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;">上传Excel自动填入 · 支持手动修改</div></div>';
+  h += '<div style="padding:4px 0;">';
+  for (var i=0;i<plFields.length;i++) {
+    var f=plFields[i];
+    h += '<div style="display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid #f5f5f5;">';
+    h += '<label style="flex:1;font-size:13px;color:#444;">'+f.label+'</label>';
+    h += '<input type="number" step="any" id="f_'+f.id+'" placeholder="0" ';
+    h += 'style="width:120px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right;background:#e8f5e9;outline:none;" ';
+    h += 'onfocus="this.style.borderColor=\'#43a047\'" onblur="this.style.borderColor=\'#e0e0e0\'"></div>';
+  }
+  h += '</div></div></div>';
+  // 底部：现金流与税务
+  h += '<div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:12px;">';
+  h += '<div style="background:linear-gradient(135deg,#e65100,#ff9800);padding:10px 16px;">';
+  h += '<div style="font-size:13px;font-weight:700;color:white;">💰 现金流与税务</div></div>';
+  h += '<div style="padding:4px 0;display:flex;flex-wrap:wrap;">';
+  for (var i=0;i<extraFields.length;i++) {
+    var f=extraFields[i];
+    h += '<div style="flex:1;min-width:200px;display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid #f5f5f5;">';
+    h += '<label style="flex:1;font-size:13px;color:#444;">'+f.label+'</label>';
+    h += '<input type="number" step="any" id="f_'+f.id+'" placeholder="0" ';
+    h += 'style="width:120px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right;background:#fff3e0;outline:none;" ';
+    h += 'onfocus="this.style.borderColor=\'#ff9800\'" onblur="this.style.borderColor=\'#e0e0e0\'"></div>';
+  }
+  h += '</div></div>';
+  container.innerHTML = h;
 }
 
 // ===== 读取数据 =====
