@@ -241,13 +241,18 @@ function parseExcel(input) {
       wb.SheetNames.forEach(name => {
         const ws = wb.Sheets[name];
         const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-        foundSheets.push(name);
-        if (name.includes("资产") || name.includes("负债")) bsData = json;
-        else if (name.includes("利润")) plData = json;
-        else if (!bsData && !plData) { // 按内容自动检测
+        foundSheets.push(name + '(' + json.length + '行)');
+        // 先按Sheet名识别
+        if (name.includes("利润") || name.includes("损益")) plData = json;
+        else if (name.includes("资产") || name.includes("负债")) bsData = json;
+        else if (!bsData && !plData) { // 按内容自动检测，优先利润表
           const txt = json.flat().join('');
-          if (txt.includes('资产')||txt.includes('负债')) bsData = json;
+          const hasIncome = txt.includes('营业收入') || txt.includes('营业成本') || txt.includes('净利润');
+          const hasBS = (txt.includes('资产总计') || txt.includes('流动资产')) && (txt.includes('负债') || txt.includes('所有者权益'));
+          if (hasIncome && !hasBS) plData = json;
+          else if (hasBS) bsData = json;
           else if (txt.includes('利润')||txt.includes('营业')) plData = json;
+          else if (txt.includes('资产')||txt.includes('负债')) bsData = json;
         }
       });
       let filledCount = 0;
