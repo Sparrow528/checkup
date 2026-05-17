@@ -275,7 +275,7 @@ function parseExcel(input) {
 }
 
 /**
- * 格式化数字为千分位显示（保留两位小数）
+ * 格式化数字为千分位显示（保留两位小数），用于显示
  */
 function fmtNum(n) {
   if (n === null || n === undefined || isNaN(n)) return '';
@@ -285,19 +285,26 @@ function fmtNum(n) {
 }
 
 /**
- * 将数值设置到input，显示千分位格式
+ * 将数值设置到input，分两个值存储：
+ * - input.value = 原始数字（用于计算）
+ * - input.dataset.display = 千分位格式（用于展示时切换）
+ * 实际显示用旁边的span
  */
 function setInputVal(elId, val) {
   var el = document.getElementById(elId);
   if (!el) return false;
   if (val === null || val === undefined || isNaN(val)) return false;
-  // 检查是否已有值（去千分位后比较）
+  // 检查是否已有值
   if (el.value) {
     var existing = parseFloat(el.value.replace(/,/g,''));
     if (!isNaN(existing) && existing !== 0) return false;
   }
   el.dataset.raw = val;
-  el.value = fmtNum(val);
+  // type=number不能包含逗号，存原始数值
+  el.value = val;
+  // 尝试更新旁边的显示span
+  var displayEl = document.getElementById(elId + '_display');
+  if (displayEl) displayEl.textContent = fmtNum(val);
   return true;
 }
 
