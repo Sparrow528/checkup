@@ -275,6 +275,42 @@ function parseExcel(input) {
 }
 
 /**
+ * 格式化数字为千分位显示（保留两位小数）
+ */
+function fmtNum(n) {
+  if (n === null || n === undefined || isNaN(n)) return '';
+  var parts = Number(n).toFixed(2).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}
+
+/**
+ * 将数值设置到input，显示千分位格式
+ */
+function setInputVal(elId, val) {
+  var el = document.getElementById(elId);
+  if (!el) return false;
+  if (val === null || val === undefined || isNaN(val)) return false;
+  // 检查是否已有值（去千分位后比较）
+  if (el.value) {
+    var existing = parseFloat(el.value.replace(/,/g,''));
+    if (!isNaN(existing) && existing !== 0) return false;
+  }
+  el.dataset.raw = val;
+  el.value = fmtNum(val);
+  return true;
+}
+
+/**
+ * 从input获取原始数值（去千分位）
+ */
+function getRawVal(id) {
+  var el = document.getElementById('f_'+id);
+  if (!el || !el.value) return 0;
+  return parseFloat(el.value.replace(/,/g,'')) || 0;
+}
+
+/**
  * 自动探测数据在哪一列：找表头行，识别"期末数/期末余额/本年累计/本年累计数"等关键词
  * 找不到则默认取最后一列数字列
  */
@@ -347,16 +383,9 @@ function findSmart(rows, labelLikes, dataCol) {
 function parseBS(rows) {
   const dataCol = detectDataCol(rows, ['期末数','期末余额','期末','年末数']);
   const initCol = detectInitCol(rows);
-  // 检测是否为左右对称结构（有"负债"关键词在右侧）
-  const hasRightSide = rows.some(r => {
-    for (let c=4; c<r.length; c++) {
-      const cell = String(r[c]||'').trim();
-      if (cell.includes('负债') || cell.includes('所有者权益')) return true;
-    }
-    return false;
-  });
   
-  const map = [
+  // 资产负债表字段映射：inputId -> 搜索关键词
+  var bsMap = [
     ['货币资金',      ['货币资金','库存现金','银行存款']],
     ['应收账款期末',  ['应收账款']],
     ['存货期末',      ['存货','库存商品']],
@@ -366,32 +395,29 @@ function parseBS(rows) {
     ['负债总额',      ['负债合计','负债总额']],
     ['所有者权益',    ['所有者权益合计','所有者权益','股东权益合计']],
   ];
-  // 期末数
-  map.forEach(([field, labels]) => {
-    const el = document.getElementById('f_'+field);
-    if (!el) return;
-    if (el.value && el.value !== '0') return;
-    el.value = findSmart(rows, labels, dataCol);
+  bsMap.forEach(function(item) {
+    setInputVal('f_'+item[0], findSmart(rows, item[1], dataCol));
   });
-  // 期初/年初数
-  const initMap = [
+  
+  // 期初/年初数（用initCol）
+  var initMap = [
     ['应收账款期初', ['应收账款']],
     ['存货期初',     ['存货','库存商品']],
     ['总资产期初',   ['资产总计','资产总额']],
-    ['总资产期末',   ['资产总计','资产总额']],
   ];
-  initMap.forEach(([field, labels]) => {
-    const el = document.getElementById('f_'+field);
-    if (!el || (el.value && el.value !== '0')) return;
-    el.value = findSmart(rows, labels, initCol);
+  initMap.forEach(function(item) {
+    setInputVal('f_'+item[0], findSmart(rows, item[1], initCol));
   });
+  
+  // 总资产期末 = 资产总额（期末数）
+  setInputVal('f_总资产期末', findSmart(rows, ['资产总计','资产总额'], dataCol));
 }
 
 function parsePL(rows) {
-  const dataCol = detectDataCol(rows, ['本年累计','本年累计数','本年累计金额','本期金额','本期数']);
-  const monthCol = detectDataCol(rows, ['本月数','本月金额','本期金额','本期数']);
+  var dataCol = detectDataCol(rows, ['本年累计','本年累计数','本年累计金额','本期金额','本期数']);
+  var monthCol = detectDataCol(rows, ['本月数','本月金额','本期金额','本期数']);
   
-  const map = [
+  var plMap = [
     ['营业收入',   ['一、营业收入','营业收入','主营业务收入','营业总收入']],
     ['营业成本',   ['营业成本','主营业务成本']],
     ['息税前利润', ['营业利润','二、营业利润','一、营业利润']],
@@ -400,38 +426,38 @@ function parsePL(rows) {
     ['净利润',     ['净利润','四、净利润']],
     ['利息费用',   ['财务费用','利息费用']],
   ];
-  let debugInfo = [];
-  map.forEach(([field, labels]) => {
-    const el = document.getElementById('f_'+field);
-    if (!el) { debugInfo.push(field+':找不到input'); return; }
-    if (el.value && el.value !== '0') { debugInfo.push(field+'=已有值'+el.value); return; }
-    const val = findSmart(rows, labels, dataCol);
-    el.value = val;
-    debugInfo.push(field+'='+val);
+  var debugInfo = [];
+  plMap.forEach(function(item) {
+    var val = findSmart(rows, item[1], dataCol);
+    debugInfo.push(item[0]+'='+val);
+    setInputVal('f_'+item[0], val);
   });
-  // 上期数
-  const prevMap = [['上期营业收入',['一、营业收入','营业收入','主营业务收入']],['上期净利润',['净利润','四、净利润']],['上期总资产',['资产总计','资产总额']]];
-  prevMap.forEach(([field, labels]) => {
-    const el = document.getElementById('f_'+field);
-    if (!el || (el.value && el.value !== '0')) return;
-    const monthly = findSmart(rows, labels, monthCol);
-    if (monthly && monthly !== 0) el.value = Math.round(monthly * 12);
-  });
-  // 利息费用
-  const interestEl = document.getElementById('f_利息费用');
-  if (interestEl && (!interestEl.value || interestEl.value === '0')) {
-    const finCost = findSmart(rows, ['财务费用'], dataCol);
-    if (finCost && finCost !== 0) interestEl.value = Math.round(finCost * 0.7);
+  
+  // 上期数（用本月数×12估算）
+  var monthData = findSmart(rows, ['一、营业收入','营业收入','主营业务收入'], monthCol);
+  if (monthData && monthData !== 0) {
+    setInputVal('f_上期营业收入', Math.round(monthData * 12));
   }
-  // 本期数
-  const periodMap = [['本期营业收入',['一、营业收入','营业收入','主营业务收入']],['本期净利润',['净利润','四、净利润']],['本期总资产',['资产总计','资产总额']]];
-  periodMap.forEach(([field, labels]) => {
-    const el = document.getElementById('f_'+field);
-    if (!el || (el.value && el.value !== '0')) return;
-    el.value = findSmart(rows, labels, dataCol);
-  });
-  // 弹窗显示调试信息
-  setTimeout(() => {
+  var monthProfit = findSmart(rows, ['净利润','四、净利润'], monthCol);
+  if (monthProfit && monthProfit !== 0) {
+    setInputVal('f_上期净利润', Math.round(monthProfit * 12));
+  }
+  
+  // 本期数 = 本年累计数
+  setInputVal('f_本期营业收入', findSmart(rows, ['一、营业收入','营业收入','主营业务收入'], dataCol));
+  setInputVal('f_本期净利润', findSmart(rows, ['净利润','四、净利润'], dataCol));
+  
+  // 利息费用如果没有单独列，用财务费用*0.7估算
+  var interestEl = document.getElementById('f_利息费用');
+  if (interestEl && (!interestEl.value || interestEl.value === '0' || interestEl.value.replace(/,/g,'') === '0')) {
+    var finCost = findSmart(rows, ['财务费用'], dataCol);
+    if (finCost && finCost !== 0) {
+      setInputVal('f_利息费用', Math.round(finCost * 0.7));
+    }
+  }
+
+  // 弹窗调试
+  setTimeout(function() {
     alert('📋 利润表解析结果：\n' + debugInfo.join('\n') + '\n\n请切换到「填数据」标签查看输入框');
   }, 100);
 }
@@ -612,7 +638,7 @@ function readData() {
   const d = {};
   for (const f of allFields) {
     const el = document.getElementById("f_"+f);
-    d[f] = el && el.value ? parseFloat(el.value) : 0;
+    d[f] = el && el.value ? parseFloat(el.value.replace(/,/g,'')) : 0;
   }
   return d;
 }
