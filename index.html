@@ -123,6 +123,12 @@ body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaH
   <span style="font-size:13px;color:#1a237e;font-weight:600;">📎 上传Excel自动填表</span>
   <input type="file" id="fileInput" accept=".xlsx,.xls" style="font-size:12px;flex:1;min-width:140px" onchange="parseExcel(this)">
   <span style="font-size:11px;color:#888;">支持资产负债表、利润表</span>
+  <div style="width:100%;margin-top:6px;font-size:11px;color:#555;">
+    没有标准格式的表？<a href="标准资产负债表模板.xlsx" download style="color:#1a237e;font-weight:600;">📥 下载资产负债表空表</a>
+    &nbsp;|&nbsp;
+    <a href="标准利润表模板.xlsx" download style="color:#1a237e;font-weight:600;">📥 下载利润表空表</a>
+    <span style="color:#999;font-size:10px;">（交给企业复制数据即可）</span>
+  </div>
 </div>
 
 <!-- Tab导航 -->
@@ -186,6 +192,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaH
       <h3>📎 Excel上传说明</h3>
       <p style="font-size:13px;color:#555;line-height:1.8;">
         <strong>支持格式：</strong>.xlsx / .xls（资产负债表的表头需含"资产""负债"关键词，利润表的表头需含"利润"关键词）<br>
+        <strong>标准模板下载：</strong><a href="标准资产负债表模板.xlsx" download style="color:#1a237e;">资产负债表空表</a> | <a href="标准利润表模板.xlsx" download style="color:#1a237e;">利润表空表</a>（交给企业复制数据即可）<br>
         <strong>先后顺序：</strong>先传资产负债表再传利润表，或反过来都可以，数据不会互相覆盖。<br>
         <strong>格式兼容：</strong>系统自动识别科目名称（如"一、营业收入""营业收入""主营业务收入"），数据列取表格右侧的数字列。
         如果您的Excel格式特殊导致识别不准，可以手动修改输入框中的数值。<br>
