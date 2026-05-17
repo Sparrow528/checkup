@@ -382,17 +382,12 @@ function findSmart(rows, labelLikes, dataCol) {
 
 function parseBS(rows) {
   // 资产负债表是左右对称结构
-  // 左侧: 资产(列0~3), 数据列=3(期末数), 年初列=2
-  // 右侧: 负债+权益(列4~7), 数据列=7(期末数), 年初列=6
   var dataColL = detectDataCol(rows, ['期末数','期末余额','期末','年末数']);
   var initColL = detectInitCol(rows);
-  // 自动检测右侧数据列（如果有8列，右侧数据列=dataColL+4）
-  var dataColR = dataColL + 4;
-  var initColR = initColL + 4;
-  if (rows[0].length < 8) {
-    dataColR = dataColL;
-    initColR = initColL;
-  }
+  var dataColR = dataColL + 4, initColR = initColL + 4;
+  if (rows[0].length < 8) { dataColR = dataColL; initColR = initColL; }
+  
+  var debugInfo = [];
   
   // 左侧：资产类字段
   var bsLeft = [
@@ -403,26 +398,40 @@ function parseBS(rows) {
     ['资产总额',      ['资产总计','资产总额'], dataColL],
   ];
   bsLeft.forEach(function(item) {
-    setInputVal('f_'+item[0], findSmart(rows, item[1], item[2]));
+    var val = findSmart(rows, item[1], item[2]);
+    debugInfo.push(item[0]+'='+val);
+    setInputVal('f_'+item[0], val);
   });
   
-  // 右侧：负债+权益类字段（数据在右侧列）
+  // 右侧：负债+权益类字段
   var bsRight = [
     ['流动负债',      ['流动负债合计','流动负债'], dataColR],
     ['负债总额',      ['负债合计','负债总额'], dataColR],
     ['所有者权益',    ['所有者权益合计','所有者权益','股东权益合计'], dataColR],
   ];
   bsRight.forEach(function(item) {
-    setInputVal('f_'+item[0], findSmart(rows, item[1], item[2]));
+    var val = findSmart(rows, item[1], item[2]);
+    debugInfo.push(item[0]+'='+val);
+    setInputVal('f_'+item[0], val);
   });
   
-  // 期初/年初数（左侧取initColL，右侧取initColR）
-  setInputVal('f_应收账款期初', findSmart(rows, ['应收账款'], initColL));
-  setInputVal('f_存货期初',     findSmart(rows, ['存货','库存商品'], initColL));
-  setInputVal('f_总资产期初',   findSmart(rows, ['资产总计','资产总额'], initColL));
+  // 期初/年初数
+  var v1 = findSmart(rows, ['应收账款'], initColL);
+  var v2 = findSmart(rows, ['存货','库存商品'], initColL);
+  var v3 = findSmart(rows, ['资产总计','资产总额'], initColL);
+  debugInfo.push('应收账款期初='+v1, '存货期初='+v2, '总资产期初='+v3);
+  setInputVal('f_应收账款期初', v1);
+  setInputVal('f_存货期初', v2);
+  setInputVal('f_总资产期初', v3);
   
-  // 总资产期末 = 左侧期末
-  setInputVal('f_总资产期末', findSmart(rows, ['资产总计','资产总额'], dataColL));
+  var v4 = findSmart(rows, ['资产总计','资产总额'], dataColL);
+  debugInfo.push('总资产期末='+v4);
+  setInputVal('f_总资产期末', v4);
+  
+  // 调试弹窗
+  setTimeout(function() {
+    alert('📋 资产负债表解析结果 (dataColL='+dataColL+' dataColR='+dataColR+'):\n' + debugInfo.join('\n'));
+  }, 100);
 }
 
 function parsePL(rows) {
