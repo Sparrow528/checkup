@@ -472,10 +472,6 @@ function parsePL(rows) {
     setInputVal('f_上期净利润', Math.round(monthProfit * 12));
   }
   
-  // 本期数 = 本年累计数
-  setInputVal('f_本期营业收入', findSmart(rows, ['一、营业收入','营业收入','主营业务收入'], dataCol));
-  setInputVal('f_本期净利润', findSmart(rows, ['净利润','四、净利润'], dataCol));
-  
   // 利息费用如果没有单独列，用财务费用*0.7估算
   var interestEl = document.getElementById('f_利息费用');
   if (interestEl && (!interestEl.value || interestEl.value === '0' || interestEl.value.replace(/,/g,'') === '0')) {
@@ -591,9 +587,7 @@ const plFields = [
   {label:'所得税费用', id:'所得税费用'},
   {label:'净利润', id:'净利润'},
   {label:'利息费用', id:'利息费用'},
-  {label:'本期营业收入', id:'本期营业收入'},
   {label:'上期营业收入', id:'上期营业收入'},
-  {label:'本期净利润', id:'本期净利润'},
   {label:'上期净利润', id:'上期净利润'},
 ];
 // 底部：现金流与税务
