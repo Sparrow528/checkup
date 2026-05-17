@@ -381,36 +381,48 @@ function findSmart(rows, labelLikes, dataCol) {
 }
 
 function parseBS(rows) {
-  const dataCol = detectDataCol(rows, ['期末数','期末余额','期末','年末数']);
-  const initCol = detectInitCol(rows);
+  // 资产负债表是左右对称结构
+  // 左侧: 资产(列0~3), 数据列=3(期末数), 年初列=2
+  // 右侧: 负债+权益(列4~7), 数据列=7(期末数), 年初列=6
+  var dataColL = detectDataCol(rows, ['期末数','期末余额','期末','年末数']);
+  var initColL = detectInitCol(rows);
+  // 自动检测右侧数据列（如果有8列，右侧数据列=dataColL+4）
+  var dataColR = dataColL + 4;
+  var initColR = initColL + 4;
+  if (rows[0].length < 8) {
+    dataColR = dataColL;
+    initColR = initColL;
+  }
   
-  // 资产负债表字段映射：inputId -> 搜索关键词
-  var bsMap = [
-    ['货币资金',      ['货币资金','库存现金','银行存款']],
-    ['应收账款期末',  ['应收账款']],
-    ['存货期末',      ['存货','库存商品']],
-    ['流动资产',      ['流动资产合计','流动资产']],
-    ['资产总额',      ['资产总计','资产总额']],
-    ['流动负债',      ['流动负债合计','流动负债']],
-    ['负债总额',      ['负债合计','负债总额']],
-    ['所有者权益',    ['所有者权益合计','所有者权益','股东权益合计']],
+  // 左侧：资产类字段
+  var bsLeft = [
+    ['货币资金',      ['货币资金','库存现金','银行存款'], dataColL],
+    ['应收账款期末',  ['应收账款'], dataColL],
+    ['存货期末',      ['存货','库存商品'], dataColL],
+    ['流动资产',      ['流动资产合计','流动资产'], dataColL],
+    ['资产总额',      ['资产总计','资产总额'], dataColL],
   ];
-  bsMap.forEach(function(item) {
-    setInputVal('f_'+item[0], findSmart(rows, item[1], dataCol));
+  bsLeft.forEach(function(item) {
+    setInputVal('f_'+item[0], findSmart(rows, item[1], item[2]));
   });
   
-  // 期初/年初数（用initCol）
-  var initMap = [
-    ['应收账款期初', ['应收账款']],
-    ['存货期初',     ['存货','库存商品']],
-    ['总资产期初',   ['资产总计','资产总额']],
+  // 右侧：负债+权益类字段（数据在右侧列）
+  var bsRight = [
+    ['流动负债',      ['流动负债合计','流动负债'], dataColR],
+    ['负债总额',      ['负债合计','负债总额'], dataColR],
+    ['所有者权益',    ['所有者权益合计','所有者权益','股东权益合计'], dataColR],
   ];
-  initMap.forEach(function(item) {
-    setInputVal('f_'+item[0], findSmart(rows, item[1], initCol));
+  bsRight.forEach(function(item) {
+    setInputVal('f_'+item[0], findSmart(rows, item[1], item[2]));
   });
   
-  // 总资产期末 = 资产总额（期末数）
-  setInputVal('f_总资产期末', findSmart(rows, ['资产总计','资产总额'], dataCol));
+  // 期初/年初数（左侧取initColL，右侧取initColR）
+  setInputVal('f_应收账款期初', findSmart(rows, ['应收账款'], initColL));
+  setInputVal('f_存货期初',     findSmart(rows, ['存货','库存商品'], initColL));
+  setInputVal('f_总资产期初',   findSmart(rows, ['资产总计','资产总额'], initColL));
+  
+  // 总资产期末 = 左侧期末
+  setInputVal('f_总资产期末', findSmart(rows, ['资产总计','资产总额'], dataColL));
 }
 
 function parsePL(rows) {
