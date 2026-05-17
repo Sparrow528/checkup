@@ -176,10 +176,21 @@ body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaH
     <div class="help-card">
       <h3>📋 使用方法</h3>
       <ol>
-        <li>点击「填数据」标签，在黄色输入框中填入企业的财务数据</li>
+        <li><strong>方式一：上传Excel自动填表</strong> — 先上传<strong>资产负债表</strong>，再上传<strong>利润表</strong>（顺序不分先后，数据不会覆盖）</li>
+        <li><strong>方式二：手动填写</strong> — 在黄色输入框中填入企业财务数据</li>
         <li>填写完成后点击底部「查看体检报告」</li>
         <li>系统自动计算各指标得分和综合评价</li>
       </ol>
+    </div>
+    <div class="help-card">
+      <h3>📎 Excel上传说明</h3>
+      <p style="font-size:13px;color:#555;line-height:1.8;">
+        <strong>支持格式：</strong>.xlsx / .xls（资产负债表的表头需含"资产""负债"关键词，利润表的表头需含"利润"关键词）<br>
+        <strong>先后顺序：</strong>先传资产负债表再传利润表，或反过来都可以，数据不会互相覆盖。<br>
+        <strong>格式兼容：</strong>系统自动识别科目名称（如"一、营业收入""营业收入""主营业务收入"），数据列取表格右侧的数字列。
+        如果您的Excel格式特殊导致识别不准，可以手动修改输入框中的数值。<br>
+        <strong>期初期末：</strong>资产负债表自动提取年初数（列2）和期末数（列3）；利润表自动提取本年累计数。
+      </p>
     </div>
     <div class="help-card">
       <h3>📊 评分规则</h3>
@@ -248,26 +259,69 @@ function parseExcel(input) {
 }
 
 /**
- * 在二维数组中按行标签+指定列找到数值
- * @param {Array} rows 二维数组
- * @param {string} labelLike 要匹配的标签关键词
- * @param {number} colIndex 数据所在列索引（利润表本年累计=3，资产负债表期末数=3）
- * @param {boolean} isBS 是否为资产负债表（左右对称结构）
+ * 自动探测数据在哪一列：找表头行，识别"期末数/期末余额/本年累计/本年累计数"等关键词
+ * 找不到则默认取最后一列数字列
  */
-function findValByCol(rows, labelLike, colIndex=3, isBS=false) {
+function detectDataCol(rows, preferKeywords=['期末数','期末余额','期末','本年累计','本年累计数','年末数']) {
+  // 先在前5行找表头关键词
+  for (let r=0; r<Math.min(rows.length, 5); r++) {
+    for (let c=0; c<rows[r].length; c++) {
+      const cell = String(rows[r][c]||'').trim();
+      for (let kw of preferKeywords) {
+        if (cell.includes(kw)) return c;
+      }
+    }
+  }
+  // 没找到，取最后数字列（跳过行次列）
+  let lastNumCol = rows[0].length - 1;
+  // 从右往左找，跳过全是"行次""序号"的列
+  for (let c=rows[0].length-1; c>=0; c--) {
+    const header = String(rows[0][c]||'').trim();
+    if (!header.includes('行次') && !header.includes('序号')) {
+      // 检查这一列是否有数字
+      let hasNum = false;
+      for (let r=1; r<Math.min(rows.length, 10); r++) {
+        if (!isNaN(parseFloat(rows[r][c]))) { hasNum = true; break; }
+      }
+      if (hasNum) return c;
+    }
+  }
+  return Math.min(rows[0].length-1, 3);
+}
+
+/** 自动探测年初数/期初数列 */
+function detectInitCol(rows, keywords=['年初数','年初余额','年初','期初数','期初余额','期初']) {
+  for (let r=0; r<Math.min(rows.length, 5); r++) {
+    for (let c=0; c<rows[r].length; c++) {
+      const cell = String(rows[r][c]||'').trim();
+      for (let kw of keywords) {
+        if (cell.includes(kw)) return c;
+      }
+    }
+  }
+  return Math.max(0, detectDataCol(rows) - 1);
+}
+
+/**
+ * 在二维数组中按行标签找到数值，自动适配多种列位置
+ */
+function findSmart(rows, labelLikes, dataCol) {
+  if (!Array.isArray(labelLikes)) labelLikes = [labelLikes];
   for (let r of rows) {
     for (let i=0; i<r.length; i++) {
       const cell = String(r[i]||'').trim();
-      if (cell.includes(labelLike)) {
-        // 资产负债表左右对称：资产项目在0~3列，数据列是colIndex
-        // 利润表单行结构：数据列是colIndex
-        let val = parseFloat(r[colIndex]);
+      // 任一关键词匹配即可
+      const matched = labelLikes.some(lb => cell.includes(lb));
+      if (!matched) continue;
+      // 先取指定数据列
+      if (dataCol !== undefined && dataCol < r.length) {
+        let val = parseFloat(r[dataCol]);
         if (!isNaN(val)) return val;
-        // 如果指定列没数字，往后找第一个数字
-        for (let j=colIndex; j<r.length; j++) {
-          const v = parseFloat(r[j]);
-          if (!isNaN(v)) return v;
-        }
+      }
+      // 否则取匹配标签右侧第一个数字
+      for (let j=i+1; j<r.length; j++) {
+        const v = parseFloat(r[j]);
+        if (!isNaN(v)) return v;
       }
     }
   }
@@ -275,88 +329,92 @@ function findValByCol(rows, labelLike, colIndex=3, isBS=false) {
 }
 
 function parseBS(rows) {
-  // 资产负债表：行0是表头 [资产,行次,年初数,期末数, 负债...]
-  // 数据在 colIndex=3（期末数）
-  const COL_BS = 3;
+  const dataCol = detectDataCol(rows, ['期末数','期末余额','期末','年末数']);
+  const initCol = detectInitCol(rows);
+  // 检测是否为左右对称结构（有"负债"关键词在右侧）
+  const hasRightSide = rows.some(r => {
+    for (let c=4; c<r.length; c++) {
+      const cell = String(r[c]||'').trim();
+      if (cell.includes('负债') || cell.includes('所有者权益')) return true;
+    }
+    return false;
+  });
+  
   const map = [
-    ['货币资金',        '货币资金'],
-    ['应收账款期末',    '应收账款'],
-    ['存货期末',        '存货'],
-    ['流动资产',        '流动资产合计'],
-    ['资产总额',        '资产总计'],
-    ['流动负债',        '流动负债合计'],
-    ['负债总额',        '负债合计'],
-    ['所有者权益',      '所有者权益合计'],
-    ['应收账款期初',    '应收账款'],  // 同时填期初数
-    ['存货期初',        '存货']
+    ['货币资金',      ['货币资金','库存现金','银行存款']],
+    ['应收账款期末',  ['应收账款']],
+    ['存货期末',      ['存货','库存商品']],
+    ['流动资产',      ['流动资产合计','流动资产']],
+    ['资产总额',      ['资产总计','资产总额']],
+    ['流动负债',      ['流动负债合计','流动负债']],
+    ['负债总额',      ['负债合计','负债总额']],
+    ['所有者权益',    ['所有者权益合计','所有者权益','股东权益合计']],
   ];
-  // 第一轮：填期末数
-  map.forEach(([field, label]) => {
-    if (field.includes('期初')) return; // 期初数单独处理
+  // 期末数
+  map.forEach(([field, labels]) => {
     const el = document.getElementById('f_'+field);
     if (!el) return;
-    // 只在不为空时才覆盖（防止覆盖用户已手动填的数据）
     if (el.value && el.value !== '0') return;
-    el.value = findValByCol(rows, label, COL_BS, true);
+    el.value = findSmart(rows, labels, dataCol);
   });
-  // 期初数：从资产负债表取年初数列 colIndex=2
-  const initMap = [['应收账款期初','应收账款'],['存货期初','存货'],['总资产期初','资产总计'],['总资产期末','资产总计']];
-  initMap.forEach(([field, label]) => {
+  // 期初/年初数
+  const initMap = [
+    ['应收账款期初', ['应收账款']],
+    ['存货期初',     ['存货','库存商品']],
+    ['总资产期初',   ['资产总计','资产总额']],
+    ['总资产期末',   ['资产总计','资产总额']],
+  ];
+  initMap.forEach(([field, labels]) => {
     const el = document.getElementById('f_'+field);
     if (!el || (el.value && el.value !== '0')) return;
-    const val = findValByCol(rows, label, 2, true); // colIndex=2 = 年初数
-    if (val !== 0) el.value = val;
+    el.value = findSmart(rows, labels, initCol);
   });
 }
 
 function parsePL(rows) {
-  // 利润表：行0=[项目,行次,本月数,本年累计数] 取本年累计数 colIndex=3
-  const COL_PL = 3;
+  const dataCol = detectDataCol(rows, ['本年累计','本年累计数','本年累计金额','本期金额','本期数']);
+  const monthCol = detectDataCol(rows, ['本月数','本月金额','本期金额','本期数']); // 可能和dataCol一样
+  
   const map = [
-    ['营业收入',   '一、营业收入'],
-    ['营业成本',   '营业成本'],     // "减：营业成本"
-    ['息税前利润', '营业利润'],     // "二、营业利润"
-    ['利润总额',   '利润总额'],     // "三、利润总额"
-    ['所得税费用', '所得税费用'],
-    ['净利润',     '净利润'],       // "四、净利润"
-    ['利息费用',   '财务费用']      // "财务费用" 近似利息费用
+    ['营业收入',   ['一、营业收入','营业收入','主营业务收入','营业总收入']],
+    ['营业成本',   ['营业成本','主营业务成本']],
+    ['息税前利润', ['营业利润','二、营业利润','一、营业利润']],
+    ['利润总额',   ['利润总额','三、利润总额']],
+    ['所得税费用', ['所得税费用']],
+    ['净利润',     ['净利润','四、净利润']],
+    ['利息费用',   ['财务费用','利息费用']],
   ];
-  map.forEach(([field, label]) => {
+  map.forEach(([field, labels]) => {
     const el = document.getElementById('f_'+field);
     if (!el) return;
     if (el.value && el.value !== '0') return;
-    el.value = findValByCol(rows, label, COL_PL);
+    el.value = findSmart(rows, labels, dataCol);
   });
-  // 同时填上期数（用本月数近似 × 12）
-  const prevMap = [['上期营业收入','一、营业收入'],['上期净利润','净利润'],['上期总资产','资产总计']];
-  prevMap.forEach(([field, label]) => {
+  // 上期数（用本月数×12估算）
+  const prevMap = [['上期营业收入',['一、营业收入','营业收入','主营业务收入']],['上期净利润',['净利润','四、净利润']],['上期总资产',['资产总计','资产总额']]];
+  prevMap.forEach(([field, labels]) => {
     const el = document.getElementById('f_'+field);
     if (!el || (el.value && el.value !== '0')) return;
-    const monthly = findValByCol(rows, label, 2); // colIndex=2 = 本月数
-    if (monthly && monthly !== 0) {
-      el.value = Math.round(monthly * 12);
-    }
+    const monthly = findSmart(rows, labels, monthCol);
+    if (monthly && monthly !== 0) el.value = Math.round(monthly * 12);
   });
-  // 利润表没有"利息费用"，所以用财务费用*0.7估算利息费用
+  // 利息费用如果没取到，用财务费用*0.7估算
   const interestEl = document.getElementById('f_利息费用');
   if (interestEl && (!interestEl.value || interestEl.value === '0')) {
-    const finCost = findValByCol(rows, '财务费用', COL_PL);
-    if (finCost && finCost !== 0) {
-      interestEl.value = Math.round(finCost * 0.7);
-    }
+    const finCost = findSmart(rows, ['财务费用'], dataCol);
+    if (finCost && finCost !== 0) interestEl.value = Math.round(finCost * 0.7);
   }
-  // 同步本期数
-  const periodMap = [['本期营业收入','一、营业收入'],['本期净利润','净利润'],['本期总资产','资产总计']];
-  periodMap.forEach(([field, label]) => {
+  // 本期数同步
+  const periodMap = [['本期营业收入',['一、营业收入','营业收入','主营业务收入']],['本期净利润',['净利润','四、净利润']],['本期总资产',['资产总计','资产总额']]];
+  periodMap.forEach(([field, labels]) => {
     const el = document.getElementById('f_'+field);
     if (!el || (el.value && el.value !== '0')) return;
-    el.value = findValByCol(rows, label, COL_PL);
+    el.value = findSmart(rows, labels, dataCol);
   });
 }
 
 function copyPeriodData() {
-  // 此函数不再需要，parseBS和parsePL已自动处理期初期末和本期上期
-  // 保留空函数避免报错
+  // parseBS和parsePL已自动处理期初期末和本期上期
 }
 
 // ===== 指标定义 =====
