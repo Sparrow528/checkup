@@ -236,10 +236,12 @@ function parseExcel(input) {
     try {
       const wb = XLSX.read(e.target.result, {type:'array', codepage:936});
       let bsData=null, plData=null;
+      let foundSheets = [];
       // 按sheet名或内容识别
       wb.SheetNames.forEach(name => {
         const ws = wb.Sheets[name];
         const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        foundSheets.push(name);
         if (name.includes("资产") || name.includes("负债")) bsData = json;
         else if (name.includes("利润")) plData = json;
         else if (!bsData && !plData) { // 按内容自动检测
@@ -248,15 +250,17 @@ function parseExcel(input) {
           else if (txt.includes('利润')||txt.includes('营业')) plData = json;
         }
       });
-      if (bsData) parseBS(bsData);
-      if (plData) parsePL(plData);
-      // 数据期初期末分摊
-      copyPeriodData();
+      let filledCount = 0;
+      if (bsData) { parseBS(bsData); filledCount++; }
+      if (plData) { parsePL(plData); filledCount++; }
       if (bsData || plData) {
         document.getElementById('fileInput').style.border='2px solid #16a34a';
-        alert('✅ 已自动填入！请核对数据后查看体检报告。');
+        const typeNames = [];
+        if (bsData) typeNames.push('资产负债表');
+        if (plData) typeNames.push('利润表');
+        alert('✅ 已识别' + typeNames.join('+') + '，数据已自动填入！\n请核对输入框中的数值，然后点击「查看体检报告」。');
       } else {
-        alert('⚠️ 未识别到资产负债表或利润表，请检查文件格式。');
+        alert('⚠️ 未识别到资产负债表或利润表。\n检测到Sheet: ' + foundSheets.join(', ') + '\n请确认文件格式是否正确，或手动填入数据。');
       }
     } catch(err) {
       alert('读取失败：'+err.message);
