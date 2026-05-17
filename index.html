@@ -247,13 +247,24 @@ function parseExcel(input) {
   reader.readAsArrayBuffer(file);
 }
 
-function findVal(rows, labelLike) {
+/**
+ * 在二维数组中按行标签+指定列找到数值
+ * @param {Array} rows 二维数组
+ * @param {string} labelLike 要匹配的标签关键词
+ * @param {number} colIndex 数据所在列索引（利润表本年累计=3，资产负债表期末数=3）
+ * @param {boolean} isBS 是否为资产负债表（左右对称结构）
+ */
+function findValByCol(rows, labelLike, colIndex=3, isBS=false) {
   for (let r of rows) {
     for (let i=0; i<r.length; i++) {
       const cell = String(r[i]||'').trim();
       if (cell.includes(labelLike)) {
-        // 取右边最近的数字
-        for (let j=i+1; j<r.length; j++) {
+        // 资产负债表左右对称：资产项目在0~3列，数据列是colIndex
+        // 利润表单行结构：数据列是colIndex
+        let val = parseFloat(r[colIndex]);
+        if (!isNaN(val)) return val;
+        // 如果指定列没数字，往后找第一个数字
+        for (let j=colIndex; j<r.length; j++) {
           const v = parseFloat(r[j]);
           if (!isNaN(v)) return v;
         }
@@ -264,45 +275,88 @@ function findVal(rows, labelLike) {
 }
 
 function parseBS(rows) {
-  const fields = ['货币资金','应收账款期末','存货期末','流动资产','资产总额','流动负债','负债总额','所有者权益'];
-  const labels = ['货币资金','应收账款','存货','流动资产合计','资产总计','流动负债合计','负债合计','所有者权益合计'];
-  fields.forEach((f, idx) => {
-    const el = document.getElementById('f_'+f);
-    if (el) el.value = findVal(rows, labels[idx]);
+  // 资产负债表：行0是表头 [资产,行次,年初数,期末数, 负债...]
+  // 数据在 colIndex=3（期末数）
+  const COL_BS = 3;
+  const map = [
+    ['货币资金',        '货币资金'],
+    ['应收账款期末',    '应收账款'],
+    ['存货期末',        '存货'],
+    ['流动资产',        '流动资产合计'],
+    ['资产总额',        '资产总计'],
+    ['流动负债',        '流动负债合计'],
+    ['负债总额',        '负债合计'],
+    ['所有者权益',      '所有者权益合计'],
+    ['应收账款期初',    '应收账款'],  // 同时填期初数
+    ['存货期初',        '存货']
+  ];
+  // 第一轮：填期末数
+  map.forEach(([field, label]) => {
+    if (field.includes('期初')) return; // 期初数单独处理
+    const el = document.getElementById('f_'+field);
+    if (!el) return;
+    // 只在不为空时才覆盖（防止覆盖用户已手动填的数据）
+    if (el.value && el.value !== '0') return;
+    el.value = findValByCol(rows, label, COL_BS, true);
+  });
+  // 期初数：从资产负债表取年初数列 colIndex=2
+  const initMap = [['应收账款期初','应收账款'],['存货期初','存货'],['总资产期初','资产总计'],['总资产期末','资产总计']];
+  initMap.forEach(([field, label]) => {
+    const el = document.getElementById('f_'+field);
+    if (!el || (el.value && el.value !== '0')) return;
+    const val = findValByCol(rows, label, 2, true); // colIndex=2 = 年初数
+    if (val !== 0) el.value = val;
   });
 }
 
 function parsePL(rows) {
-  const map = [['营业收入','营业收入'],['营业成本','营业成本'],['息税前利润','营业利润'],
-    ['利润总额','利润总额'],['所得税费用','所得税费用'],['净利润','净利润'],['利息费用','利息费用']];
+  // 利润表：行0=[项目,行次,本月数,本年累计数] 取本年累计数 colIndex=3
+  const COL_PL = 3;
+  const map = [
+    ['营业收入',   '一、营业收入'],
+    ['营业成本',   '营业成本'],     // "减：营业成本"
+    ['息税前利润', '营业利润'],     // "二、营业利润"
+    ['利润总额',   '利润总额'],     // "三、利润总额"
+    ['所得税费用', '所得税费用'],
+    ['净利润',     '净利润'],       // "四、净利润"
+    ['利息费用',   '财务费用']      // "财务费用" 近似利息费用
+  ];
   map.forEach(([field, label]) => {
     const el = document.getElementById('f_'+field);
-    if (el) el.value = findVal(rows, label);
+    if (!el) return;
+    if (el.value && el.value !== '0') return;
+    el.value = findValByCol(rows, label, COL_PL);
+  });
+  // 同时填上期数（用本月数近似 × 12）
+  const prevMap = [['上期营业收入','一、营业收入'],['上期净利润','净利润'],['上期总资产','资产总计']];
+  prevMap.forEach(([field, label]) => {
+    const el = document.getElementById('f_'+field);
+    if (!el || (el.value && el.value !== '0')) return;
+    const monthly = findValByCol(rows, label, 2); // colIndex=2 = 本月数
+    if (monthly && monthly !== 0) {
+      el.value = Math.round(monthly * 12);
+    }
+  });
+  // 利润表没有"利息费用"，所以用财务费用*0.7估算利息费用
+  const interestEl = document.getElementById('f_利息费用');
+  if (interestEl && (!interestEl.value || interestEl.value === '0')) {
+    const finCost = findValByCol(rows, '财务费用', COL_PL);
+    if (finCost && finCost !== 0) {
+      interestEl.value = Math.round(finCost * 0.7);
+    }
+  }
+  // 同步本期数
+  const periodMap = [['本期营业收入','一、营业收入'],['本期净利润','净利润'],['本期总资产','资产总计']];
+  periodMap.forEach(([field, label]) => {
+    const el = document.getElementById('f_'+field);
+    if (!el || (el.value && el.value !== '0')) return;
+    el.value = findValByCol(rows, label, COL_PL);
   });
 }
 
 function copyPeriodData() {
-  // 本期=当前值，上期留空让用户手动填
-  const pairs = [['营业收入','本期营业收入'],['净利润','本期净利润'],['总资产','本期总资产']];
-  pairs.forEach(([src, dst]) => {
-    const se = document.getElementById('f_'+src);
-    const de = document.getElementById('f_'+dst);
-    if (se && de && se.value && !de.value) de.value = se.value;
-  });
-  // 期初=期末（近似）
-  const initPairs = [['应收账款期末','应收账款期初'],['存货期末','存货期初'],['资产总额','总资产期初'],['资产总额','总资产期末']];
-  initPairs.forEach(([src, dst]) => {
-    const se = document.getElementById('f_'+src);
-    const de = document.getElementById('f_'+dst);
-    if (se && de && se.value && !de.value) de.value = se.value;
-  });
-  // 上期
-  const prevPairs = [['营业收入','上期营业收入'],['净利润','上期净利润'],['资产总额','上期总资产']];
-  prevPairs.forEach(([src, dst]) => {
-    const se = document.getElementById('f_'+src);
-    const de = document.getElementById('f_'+dst);
-    if (se && de && se.value && !de.value) de.value = Math.round(se.value * 0.9);
-  });
+  // 此函数不再需要，parseBS和parsePL已自动处理期初期末和本期上期
+  // 保留空函数避免报错
 }
 
 // ===== 指标定义 =====
