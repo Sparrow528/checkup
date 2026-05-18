@@ -159,6 +159,12 @@ body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaH
       <div class="suggestion"></div>
     </div>
     <div id="dimGrid" class="dim-grid"></div>
+    <div id="radarSection" style="margin-top:16px;display:none;">
+      <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <h3 style="font-size:16px;color:#065f46;margin-bottom:12px;text-align:center;">六大维度雷达图</h3>
+        <canvas id="radarChart" width="400" height="400" style="width:100%;max-width:400px;height:auto;display:block;margin:0 auto;"></canvas>
+      </div>
+    </div>
     <div id="indicatorTable" class="indicator-table" style="display:none">
       <div class="table-header">
         <span class="col-name">指标</span>
@@ -779,7 +785,67 @@ function calcAndShow() {
   const rows = document.getElementById("indicatorRows");
   rows.innerHTML = detailHtml;
 
+  // 绘制雷达图
+  drawRadarChart(dimScores);
+
   switchTab("report");
+}
+
+// ===== 雷达图 =====
+function drawRadarChart(dimScores) {
+  var CA = document.getElementById("radarChart");
+  if (!CA) return;
+  var CX = CA.getContext("2d");
+  var W = 400, H = 400, cx = 200, cy = 200, R = 150;
+  var LB = DIM_ORDER;
+  var n = LB.length;
+  var AS = 2 * Math.PI / n;
+  var DA = LB.map(function(D) {
+    var S = dimScores[D] || {actual:0, max:1};
+    return S.max > 0 ? Math.round(S.actual / S.max * 100) : 0;
+  });
+  CX.clearRect(0, 0, W, H);
+  for (var r = 1; r <= 5; r++) {
+    var RR = R * r / 5; CX.beginPath();
+    for (var i = 0; i <= n; i++) {
+      var A = -Math.PI/2 + i*AS;
+      var X = cx + RR*Math.cos(A), Y = cy + RR*Math.sin(A);
+      i === 0 ? CX.moveTo(X,Y) : CX.lineTo(X,Y);
+    }
+    CX.strokeStyle = r === 5 ? "#d0d0d0" : "#e8e8e8";
+    CX.lineWidth = r === 5 ? 1 : 0.5; CX.stroke();
+  }
+  for (var i = 0; i < n; i++) {
+    var A = -Math.PI/2 + i*AS; CX.beginPath();
+    CX.moveTo(cx, cy); CX.lineTo(cx + R*Math.cos(A), cy + R*Math.sin(A));
+    CX.strokeStyle = "#d0d0d0"; CX.lineWidth = 0.5; CX.stroke();
+  }
+  CX.beginPath();
+  for (var i = 0; i <= n; i++) {
+    var id = i % n, A = -Math.PI/2 + id*AS, RR = R * DA[id] / 100;
+    var X = cx + RR*Math.cos(A), Y = cy + RR*Math.sin(A);
+    i === 0 ? CX.moveTo(X,Y) : CX.lineTo(X,Y);
+  }
+  CX.closePath();
+  CX.fillStyle = "rgba(6,95,70,0.15)"; CX.fill();
+  CX.strokeStyle = "#065f46"; CX.lineWidth = 2; CX.stroke();
+  for (var i = 0; i < n; i++) {
+    var A = -Math.PI/2 + i*AS, RR = R * DA[i] / 100;
+    var X = cx + RR*Math.cos(A), Y = cy + RR*Math.sin(A);
+    CX.beginPath(); CX.arc(X, Y, 4, 0, 2*Math.PI);
+    CX.fillStyle = "#065f46"; CX.fill();
+  }
+  CX.font = "12px -apple-system,'PingFang SC','Microsoft YaHei',sans-serif";
+  CX.fillStyle = "#333"; CX.textAlign = "center"; CX.textBaseline = "middle";
+  for (var i = 0; i < n; i++) {
+    var A = -Math.PI/2 + i*AS;
+    CX.fillText(LB[i], cx+(R+25)*Math.cos(A), cy+(R+25)*Math.sin(A));
+    CX.font = "11px -apple-system,'PingFang SC','Microsoft YaHei',sans-serif";
+    CX.fillStyle = "#065f46";
+    CX.fillText(DA[i]+"分", cx+(R+40)*Math.cos(A), cy+(R+40)*Math.sin(A));
+    CX.font = "12px -apple-system,'PingFang SC','Microsoft YaHei',sans-serif";
+  }
+  document.getElementById("radarSection").style.display = "block";
 }
 
 // ===== 分享 =====
