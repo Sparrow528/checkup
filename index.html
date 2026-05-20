@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>企业财务健康体检</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#2d3436;padding-bottom:60px}
+.hd{background:linear-gradient(135deg,#065f46,#059669);color:#fff;padding:32px 20px 24px;text-align:center}
+.hd h1{font-size:22px;margin-bottom:6px}
+.hd p{font-size:13px;opacity:.85}
+.hd .b{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:4px 14px;font-size:11px;margin-top:8px}
+.tabs{display:flex;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);position:sticky;top:0;z-index:10}
+.tab{flex:1;text-align:center;padding:14px 0;font-size:14px;font-weight:500;color:#888;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab.act{color:#065f46;border-bottom-color:#065f46}
+.pn{display:none;padding:16px}
+.pn.act{display:block}
+.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px}
+.ct{background:#f0f4ff;padding:10px 16px;font-size:13px;font-weight:600;color:#065f46;border-bottom:1px solid #e0e7ff}
+.fr{display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid #f5f5f5}
+.fr label{font-size:13px;color:#444;flex:1}
+.fr input{width:120px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right;background:#fff8e1;outline:none;transition:border-color .2s}
+.fr input:focus{border-color:#3b82f6}
+.btm{position:sticky;bottom:0;background:#fff;padding:12px 16px;display:flex;gap:10px;box-shadow:0 -2px 8px rgba(0,0,0,.06);z-index:10}
+.btm button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer}
+.btn-p{background:linear-gradient(135deg,#065f46,#059669);color:#fff}
+.btn-s{background:#e8ecf1;color:#555}
+.sc{background:linear-gradient(135deg,#065f46,#059669);color:#fff;border-radius:16px;padding:28px 20px;text-align:center;margin-bottom:16px}
+.sc .l{font-size:13px;opacity:.85}
+.sc .n{font-size:40px;font-weight:800;margin:6px 0}
+.sc .g{font-size:16px;font-weight:600;margin-bottom:4px}
+.sc .s{font-size:13px;opacity:.9;line-height:1.6}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.dc{background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.dc .n{font-size:12px;color:#888}
+.dc .s{font-size:20px;font-weight:700}
+.dc .st{font-size:11px;margin-top:4px;padding:2px 10px;border-radius:10px;display:inline-block}
+.gc .dc .s{color:#16a34a}
+.yw .dc .s{color:#d97706}
+.rd .dc .s{color:#dc2626}
+.sg{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:10px}
+.sg-t{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f0f0}
+.sg-t .tn{font-size:14px;font-weight:700;color:#065f46}
+.sg-t .ts{font-size:13px;font-weight:600}
+.si{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f8f8f8}
+.si:last-child{border-bottom:none}
+.si .il{flex:1}
+.si .in{font-size:13px;font-weight:600;color:#333}
+.si .in2{font-size:11px;color:#999;margin-top:2px}
+.si .iv{text-align:right;margin-left:10px}
+.si .ivn{font-size:14px;font-weight:700;color:#333}
+.si .ivs{font-size:11px;color:#999}
+.si .ib{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;margin-left:10px;white-space:nowrap}
+.ib.g{background:#e6f7e6;color:#16a34a}
+.ib.y{background:#fef9e7;color:#d97706}
+.ib.r{background:#feeaea;color:#dc2626}
+.hc{background:#fff;border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.hc h3{font-size:15px;margin-bottom:8px;color:#065f46}
+.hc p,.hc li{font-size:13px;color:#555;line-height:1.8}
+.hc ol{padding-left:20px}
+.ctc{background:#eef2ff;border-radius:8px;padding:12px}
+.ctc strong{font-size:14px;color:#065f46}
+.mb{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);border-radius:12px;padding:20px;text-align:center;margin-top:16px;color:#fff}
+.mb h3{font-size:15px;margin-bottom:6px}
+.mb p{font-size:12px;opacity:.85;line-height:1.6}
+.mb .mbtn{display:inline-block;background:#fff;color:#065f46;padding:8px 24px;border-radius:20px;text-decoration:none;font-size:13px;font-weight:600;margin-top:8px}
+.bk{text-align:center;padding:16px;margin-top:4px}
+.bk a{display:inline-block;padding:10px 24px;background:#ecfdf5;color:#065f46;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #a7f3d0}
+@media(max-width:480px){.dg{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <h1>🏥 企业财务健康体检</h1>
+  <p>填写数据 · 自动出结果</p>
+  <div class="b">您身边的财税专家 · 洪淳宇</div>
+</div>
+
+<!-- 上传区 -->
+<div style="background:#e8f0fe;border-radius:12px;margin:12px 16px;padding:14px 16px;">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px;">
+    <span style="font-size:13px;color:#065f46;font-weight:600;">📎 上传Excel自动填表</span>
+    <input type="file" id="bsInput" accept=".xlsx,.xls" style="font-size:12px;flex:1;min-width:120px">
+    <span style="font-size:11px;color:#888;">先传资产负债表，再传利润表</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#555;margin-top:4px;">
+    <a href="标准资产负债表模板.xlsx" download style="color:#065f46;font-weight:600;">📥 下载资产负债表空表</a>
+    <span style="color:#ccc;">|</span>
+    <a href="标准利润表模板.xlsx" download style="color:#065f46;font-weight:600;">📥 下载利润表空表</a>
+    <span style="color:#999;font-size:10px;">（交给企业复制粘贴数据即可）</span>
+  </div>
+</div>
+
+<div class="tabs" id="tabNav">
+  <div class="tab act" data-tab="input" onclick="sw('input')">📝 填数据</div>
+  <div class="tab" data-tab="report" onclick="sw('report')">📊 看结果</div>
+  <div class="tab" data-tab="help" onclick="sw('help')">❓ 说明</div>
+</div>
+
+<div class="pn act" id="p-input">
+  <div id="formArea"></div>
+  <div class="btm">
+    <button class="btn-s" onclick="resetAll()">🗑️ 清除数据</button>
+    <button class="btn-p" onclick="calc()">查看体检报告</button>
+  </div>
+</div>
+
+<div class="pn" id="p-report">
+  <div class="sc" id="scoreCard">
+    <div class="l">综合评分</div>
+    <div class="n">—</div>
+    <div class="g">请先在「填数据」录入企业财务数据</div>
+    <div class="s"></div>
+  </div>
+  <div class="dg" id="dimGrid"></div>
+  <div id="detailArea"></div>
+  <div class="btm">
+    <button class="btn-s" onclick="sw('input')">← 修改数据</button>
+    <button class="btn-p" onclick="shareResult()">📤 分享报告</button>
+  </div>
+</div>
+
+<div class="pn" id="p-help">
+  <div class="hc">
+    <h3>📋 使用方法</h3>
+    <ol>
+      <li>在「填数据」页面填入企业财务数据（30个字段）</li>
+      <li>点击底部「查看体检报告」</li>
+      <li>系统自动计算各指标得分和综合评价</li>
+    </ol>
+  </div>
+  <div class="hc">
+    <h3>📊 评分规则</h3>
+    <p>🟢 健康 — 得满分　🟡 关注 — 得60%分　🔴 预警 — 得20%分</p>
+  </div>
+  <div class="hc">
+    <h3>📈 评级标准</h3>
+    <p>AAA 90+ 非常健康　AA 80-89 状况良好　A 70-79 基本健康</p>
+    <p>BBB 60-69 存在风险　BB 50-59 风险较高　B &lt;50 风险很高</p>
+  </div>
+  <div class="hc">
+    <h3>👤 关于作者</h3>
+    <div class="ctc">
+      <strong>洪淳宇 · 您身边的财税专家</strong>
+      <p>为企业提供专业财税合规、税务筹划、财务体检服务</p>
+      <p style="margin-top:6px;font-size:12px;color:#999">📞 18601294989</p>
+    </div>
+  </div>
+</div>
+
+<div class="bk">
+  <a href="https://sparrow528.github.io/checkup-landing/">← 返回免费工具入口</a>
+</div>
+
+<div class="mb">
+  <h3>🔒 免费版 · 基础指标</h3>
+  <p>升级会员享完整诊断报告 + 定制优化建议 + 一对一咨询</p>
+  <a class="mbtn" href="https://sparrow528.github.io/tax-membership/" target="_blank">👉 了解会员方案</a>
+  <div style="margin-top:10px;font-size:11px;opacity:.6">宇守信投资管理咨询（北京）有限公司 · 洪淳宇</div>
+</div>
+
+<script>
+var XLSX = window.XLSX || null;
+
+// ===== Excel上传解析 =====
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('bsInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    if (!XLSX) { alert('XLSX库未加载，无法解析Excel'); return; }
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try {
+        var wb = XLSX.read(ev.target.result, {type:'array', codepage:936});
+        var found = false;
+        wb.SheetNames.forEach(function(name){
+          var ws = wb.Sheets[name];
+          var json = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+          var txt = json.flat().join('');
+          var isBS = (txt.includes('资产') || txt.includes('负债')) && !txt.includes('营业');
+          var isPL = txt.includes('营业收入') || txt.includes('营业成本') || txt.includes('净利润');
+          if (isPL && txt.includes('利润')) isBS = false;
+          if (isBS) {
+            fillBS(json);
+            found = true;
+          } else if (isPL || (!isBS && (txt.includes('营业') || txt.includes('利润')))) {
+            fillPL(json);
+            found = true;
+          }
+        });
+        if (found) alert('✅ 数据已自动填入对应字段！请核对后点击「查看体检报告」');
+        else alert('⚠️ 未识别到资产负债表或利润表格式');
+      } catch(err) { alert('读取失败：'+err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+});
+
+// 查找关键词并填值
+function findAndFill(rows, keywords, fieldIdx) {
+  for (var r=0; r<rows.length; r++) {
+    for (var c=0; c<rows[r].length; c++) {
+      var cell = String(rows[r][c]||'').trim();
+      for (var k=0; k<keywords.length; k++) {
+        if (cell.includes(keywords[k])) {
+          // 找数字列
+          for (var j=rows[r].length-1; j>=0; j--) {
+            var v = parseFloat(rows[r][j]);
+            if (!isNaN(v) && v !== 0) {
+              var el = document.getElementById('f_'+fieldIdx);
+              if (el && !el.value) el.value = v;
+              return v;
+            }
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function fillBS(rows) {
+  // 标准左右对称表：0=科目左 1=行次 2=年初左 3=期末左 | 4=科目右 5=行次 6=年初右 7=期末右
+  function setVal(idx, val) {
+    if (val === null || val === undefined || isNaN(val)) return;
+    var el = document.getElementById('f_'+idx);
+    if (el && !el.value) el.value = val;
+  }
+
+  // 取某行某列的值，直接取原始数值（不过滤0）
+  function cellVal(r, c) {
+    if (r < 0 || r >= rows.length || c < 0 || c >= rows[r].length) return null;
+    var v = parseFloat(String(rows[r][c]).replace(/,/g,'').replace(/ /g,''));
+    return isNaN(v) ? null : v;
+  }
+
+  // 匹配关键词，取该行指定列的值（优先带"合计"的行）
+  function pick(keywords, col) {
+    for (var pass=0; pass<2; pass++) {
+      for (var r=0; r<rows.length; r++) {
+        for (var c=0; c<rows[r].length; c++) {
+          var cell = String(rows[r][c]||'').trim();
+          for (var k=0; k<keywords.length; k++) {
+            if (cell.includes(keywords[k])) {
+              if (pass===0 && !cell.includes('合计')) continue;
+              var v = cellVal(r, col);
+              if (v !== null) return v;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // 左侧资产：列3=期末数，列2=年初数
+  setVal(18, pick(['货币资金','库存现金','银行存款'], 3));
+  setVal(11, pick(['应收账款'], 2));
+  setVal(12, pick(['应收账款'], 3));
+  setVal(4,  pick(['流动资产合计','流动资产'], 3));
+  setVal(7,  pick(['资产总计','资产总额'], 2));
+  setVal(8,  pick(['资产总计','资产总额'], 3));
+
+  // 右侧负债+权益：列7=期末数，列6=年初数
+  setVal(5,  pick(['流动负债合计','流动负债'], 7));
+  setVal(6,  pick(['负债合计','负债总额'], 7));
+  setVal(3,  pick(['所有者权益合计','股东权益合计','所有者权益(或股东权益)合计','所有者权益'], 7));
+}
+
+function fillPL(rows) {
+  // 标准利润表：0=项目 1=行次 2=本月数 3=本年累计数
+  function setVal(idx, val) {
+    if (val === null || val === undefined || isNaN(val)) return;
+    var el = document.getElementById('f_'+idx);
+    if (el && !el.value) el.value = Math.round(val);
+  }
+  function pick(keywords, col) {
+    for (var r=0; r<rows.length; r++) {
+      for (var c=0; c<rows[r].length; c++) {
+        var cell = String(rows[r][c]||'').trim();
+        for (var k=0; k<keywords.length; k++) {
+          if (cell.includes(keywords[k])) {
+            var v = parseFloat(String(rows[r][col]).replace(/,/g,''));
+            if (!isNaN(v)) return v;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  setVal(0,  pick(['一、营业收入','营业收入','主营业务收入','营业总收入'], 3));
+  setVal(1,  pick(['营业成本'], 3));
+  setVal(9, pick(['二、营业利润','营业利润','一、营业利润'], 3));
+  setVal(21, pick(['三、利润总额','利润总额'], 3));
+  setVal(20, pick(['所得税费用'], 3));
+  setVal(2,  pick(['四、净利润','净利润'], 3));
+  setVal(10, pick(['财务费用','利息费用'], 3));
+  // 本月数×12估算上期
+  var mRev = pick(['一、营业收入','营业收入','主营业务收入'], 2);
+  if (mRev && mRev !== 0) setVal(14, Math.round(mRev * 12));
+  var mProfit = pick(['四、净利润','净利润'], 2);
+  if (mProfit && mProfit !== 0) setVal(15, Math.round(mProfit * 12));
+
+  // 利息费用如果为0，用财务费用×0.7估算
+  var intEl = document.getElementById('f_11');
+  if (intEl && (!intEl.value || Math.round(intEl.value) === 0)) {
+    var fc = pick(['财务费用'], 3);
+    if (fc && fc !== 0) intEl.value = Math.round(fc * 0.7);
+  }
+}
+
+// ===== 30个字段 =====
+var FIELDS = [
+  '营业收入','营业成本','净利润','所有者权益','流动资产','流动负债','负债总额','资产总额期初','资产总额期末','息税前利润','利息费用','应收账款期初','应收账款期末','本期营业收入','上期营业收入','本期净利润','上期净利润','经营活动现金流净额','货币资金','实际缴纳税费总额','所得税费用','利润总额','发票合规评分（0-100）'
+];
+
+var DIMS = ['盈利能力','偿债能力','营运能力','成长能力','现金流能力','税务健康度'];
+var DIM_MAX = {'盈利能力':0,'偿债能力':0,'营运能力':0,'成长能力':0,'现金流能力':0,'税务健康度':0};
+
+// ===== 20个指标 =====
+var IDS = [
+  {d:'盈利能力',n:'毛利率',in:['营业收入','营业成本'],un:'%',st:'≥25%',mx:5,
+   c: d=>d.营业收入>0?(d.营业收入-d.营业成本)/d.营业收入*100:null,gr:v=>v>=25,yl:v=>v>=15,no:'产品盈利空间'},
+  {d:'盈利能力',n:'净利率',in:['净利润','营业收入'],un:'%',st:'≥10%',mx:5,
+   c: d=>d.营业收入>0?d.净利润/d.营业收入*100:null,gr:v=>v>=10,yl:v=>v>=5,no:'企业最终盈利水平'},
+  {d:'盈利能力',n:'净资产收益率ROE',in:['净利润','所有者权益'],un:'%',st:'≥15%',mx:5,
+   c: d=>d.所有者权益>0?d.净利润/d.所有者权益*100:null,gr:v=>v>=15,yl:v=>v>=8,no:'股东回报率'},
+  {d:'盈利能力',n:'总资产报酬率ROA',in:['净利润','资产总额'],un:'%',st:'≥5%',mx:3,
+   c: d=>d.资产总额>0?d.净利润/d.资产总额*100:null,gr:v=>v>=5,yl:v=>v>=2,no:'全部资产获利能力'},
+  {d:'偿债能力',n:'流动比率',in:['流动资产','流动负债'],un:'倍',st:'1.5~2.0',mx:4,
+   c: d=>d.流动负债>0?d.流动资产/d.流动负债:null,gr:v=>v>=1.5&&v<=2,yl:v=>v>=1&&v<=3,no:'短期偿债能力'},
+  {d:'偿债能力',n:'速动比率',in:['流动资产','存货','流动负债'],un:'倍',st:'≥1.0',mx:3,
+   c: d=>d.流动负债>0?(d.流动资产-d.存货)/d.流动负债:null,gr:v=>v>=1,yl:v=>v>=0.5,no:'剔除存货后短期偿债'},
+  {d:'偿债能力',n:'资产负债率',in:['负债总额','资产总额'],un:'%',st:'40%~60%',mx:5,
+   c: d=>d.资产总额>0?d.负债总额/d.资产总额*100:null,gr:v=>v>=40&&v<=60,yl:v=>v>=20&&v<=80,no:'负债水平'},
+  {d:'偿债能力',n:'利息保障倍数',in:['息税前利润','利息费用'],un:'倍',st:'≥3',mx:3,
+   c: d=>d.利息费用>0?d.息税前利润/d.利息费用:null,gr:v=>v>=3,yl:v=>v>=1.5,no:'支付利息能力'},
+  {d:'营运能力',n:'应收账款周转率',in:['营业收入','应收账款期初','应收账款期末'],un:'次/年',st:'≥6',mx:5,
+   c: d=>(d.应收账款期初+d.应收账款期末)>0?d.营业收入/((d.应收账款期初+d.应收账款期末)/2):null,gr:v=>v>=6,yl:v=>v>=3,no:'回款速度'},
+  {d:'营运能力',n:'存货周转率',in:['营业成本','存货期初','存货期末'],un:'次/年',st:'≥4',mx:4,
+   c: d=>(d.存货期初+d.存货期末)>0?d.营业成本/((d.存货期初+d.存货期末)/2):null,gr:v=>v>=4,yl:v=>v>=2,no:'存货变现速度'},
+  {d:'营运能力',n:'总资产周转率',in:['营业收入','总资产期初','总资产期末'],un:'次/年',st:'≥0.8',mx:3,
+   c: d=>(d.总资产期初+d.总资产期末)>0?d.营业收入/((d.总资产期初+d.总资产期末)/2):null,gr:v=>v>=0.8,yl:v=>v>=0.4,no:'资产运营效率'},
+  {d:'成长能力',n:'营收增长率',in:['营业收入','上期营业收入'],un:'%',st:'≥10%',mx:5,
+   c: d=>d.上期营业收入?(d.营业收入-d.上期营业收入)/d.上期营业收入*100:null,gr:v=>v>=10,yl:v=>v>=0,no:'市场扩张速度'},
+  {d:'成长能力',n:'净利润增长率',in:['净利润','上期净利润'],un:'%',st:'≥10%',mx:4,
+   c: d=>d.上期净利润?(d.净利润-d.上期净利润)/d.上期净利润*100:null,gr:v=>v>=10,yl:v=>v>=0,no:'盈利增长势头'},
+  {d:'成长能力',n:'总资产增长率',in:['总资产期末','总资产期初'],un:'%',st:'≥5%',mx:3,
+   c: d=>d.总资产期初>0?(d.总资产期末-d.总资产期初)/d.总资产期初*100:null,gr:v=>v>=5,yl:v=>v>=0,no:'规模扩张速度'},
+  {d:'现金流能力',n:'经营现金流/营收',in:['经营活动现金流净额','营业收入'],un:'%',st:'≥10%',mx:5,
+   c: d=>d.营业收入>0?d.经营活动现金流净额/d.营业收入*100:null,gr:v=>v>=10,yl:v=>v>=5,no:'收入转化为现金能力'},
+  {d:'现金流能力',n:'现金利润匹配度',in:['经营活动现金流净额','净利润'],un:'倍',st:'≥0.8',mx:4,
+   c: d=>d.净利润>0?d.经营活动现金流净额/d.净利润:null,gr:v=>v>=0.8,yl:v=>v>=0.4,no:'利润现金保障'},
+  {d:'现金流能力',n:'现金比率',in:['货币资金','流动负债'],un:'倍',st:'≥0.3',mx:3,
+   c: d=>d.流动负债>0?d.货币资金/d.流动负债:null,gr:v=>v>=0.3,yl:v=>v>=0.15,no:'最严格短期偿债'},
+  {d:'税务健康度',n:'综合税负率',in:['实际缴纳税费总额','营业收入'],un:'%',st:'1%~5%',mx:5,
+   c: d=>d.营业收入>0?d.实际缴纳税费总额/d.营业收入*100:null,gr:v=>v>=1&&v<=5,yl:v=>v>=0.5&&v<=8,no:'税负水平'},
+  {d:'税务健康度',n:'所得税贡献率',in:['所得税费用','利润总额'],un:'%',st:'15%~25%',mx:4,
+   c: d=>d.利润总额>0?d.所得税费用/d.利润总额*100:null,gr:v=>v>=15&&v<=25,yl:v=>v>=10&&v<=30,no:'所得税合理性'},
+  {d:'税务健康度',n:'发票合规评分',in:['发票合规评分（0-100）'],un:'分',st:'≥80分',mx:4,
+   c: d=>Math.min(Math.max(d['发票合规评分（0-100）']||0,0),100),gr:v=>v>=80,yl:v=>v>=60,no:'发票管理规范性'}
+];
+
+// 计算各维度满分
+IDS.forEach(function(id){DIM_MAX[id.d]=(DIM_MAX[id.d]||0)+id.mx});
+
+// ===== 构建表单 =====
+function buildForm(){
+  // 左列-资产负债表
+  var bsFields = [
+    ['货币资金','货币资金'],['应收账款（期初）','应收账款期初'],['应收账款（期末）','应收账款期末'],
+    ['流动资产合计','流动资产'],['流动负债合计','流动负债'],
+    ['负债总额','负债总额'],
+    ['资产总额（期初）','资产总额期初'],['资产总额（期末）','资产总额期末'],
+    ['所有者权益','所有者权益']
+  ];
+  // 右列-利润表
+  var plFields = [
+    ['营业收入','营业收入'],
+    ['营业成本','营业成本'],['息税前利润','息税前利润'],
+    ['净利润','净利润'],
+    ['上期营业收入','上期营业收入'],['本期净利润','本期净利润'],
+    ['上期净利润','上期净利润'],['利息费用','利息费用'],
+    ['所得税费用','所得税费用']
+  ];
+  // 底部-现金流与税务
+  var cashFields = [
+    ['经营活动现金流净额','经营活动现金流净额'],
+    ['实际缴纳税费总额','实际缴纳税费总额'],
+    ['发票合规评分（0-100）','发票合规评分（0-100）']
+  ];
+
+  var h='';
+  // 两列布局
+  h+='<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;">';
+
+  // 左列-资产负债表
+  h+='<div style="flex:1;min-width:280px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);">';
+  h+='<div style="background:linear-gradient(135deg,#065f46,#059669);padding:12px 16px;"><div style="font-size:14px;font-weight:700;color:#fff;">📋 资产负债表</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">输入或上传自动填入</div></div>';
+  h+='<div style="padding:4px 0;">';
+  for(var i=0;i<bsFields.length;i++){
+    var f=bsFields[i],idx=FIELDS.indexOf(f[1]);
+    h+='<div class="fr"><label>'+f[0]+'</label><input type="number" step="any" id="f_'+idx+'" placeholder="0"></div>';
+  }
+  h+='</div></div>';
+
+  // 右列-利润表
+  h+='<div style="flex:1;min-width:280px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);">';
+  h+='<div style="background:linear-gradient(135deg,#1b5e20,#43a047);padding:12px 16px;"><div style="font-size:14px;font-weight:700;color:#fff;">📊 利润表</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">输入或上传自动填入</div></div>';
+  h+='<div style="padding:4px 0;">';
+  for(var i=0;i<plFields.length;i++){
+    var f=plFields[i],idx=FIELDS.indexOf(f[1]);
+    h+='<div class="fr"><label>'+f[0]+'</label><input type="number" step="any" id="f_'+idx+'" placeholder="0"></div>';
+  }
+  h+='</div></div>';
+
+  h+='</div>';
+
+  // 底部-现金流与税务
+  h+='<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px;">';
+  h+='<div style="background:linear-gradient(135deg,#e65100,#ff9800);padding:10px 16px;"><div style="font-size:13px;font-weight:700;color:#fff;">💰 现金流与税务</div></div>';
+  h+='<div style="padding:4px 0;display:flex;flex-wrap:wrap;">';
+  for(var i=0;i<cashFields.length;i++){
+    var f=cashFields[i],idx=FIELDS.indexOf(f[1]);
+    h+='<div style="flex:1;min-width:200px;display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid #f5f5f5;">';
+    h+='<label style="flex:1;font-size:13px;color:#444;">'+f[0]+'</label>';
+    h+='<input type="number" step="any" id="f_'+idx+'" placeholder="0" style="width:120px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right;background:#fff3e0;outline:none;"></div>';
+  }
+  h+='</div></div>';
+
+  document.getElementById('formArea').innerHTML=h;
+}
+
+// ===== 读取数据 =====
+function readData(){
+  var d={};
+  for(var i=0;i<FIELDS.length;i++){
+    var el=document.getElementById('f_'+i);
+    d[FIELDS[i]]=el&&el.value?parseFloat(el.value)||0:0;
+  }
+  return d;
+}
+
+// ===== 计算 =====
+function calc(){
+  var data=readData();
+  var filled=FIELDS.filter(function(f){return data[f]&&data[f]!==0});
+  if(filled.length<3){alert('请至少填写3个以上的财务数据！');return;}
+
+  var results=IDS.map(function(id){
+    var val=null;try{val=id.c(data);}catch(e){}
+    var score=0,st='green';
+    if(val!==null&&!isNaN(val)){
+      if(id.gr(val)){score=id.mx;st='green';}
+      else if(id.yl(val)){score=Math.round(id.mx*0.6*10)/10||0.1;st='yellow';}
+      else{score=Math.round(id.mx*0.2*10)/10||0.1;st='red';}
+    }else{st='gray';}
+    return{id:id,val:val,score:score,st:st};
+  });
+
+  var ds={};
+  results.forEach(function(r){
+    if(!ds[r.id.d])ds[r.id.d]={a:0,m:0};
+    ds[r.id.d].a+=r.score;ds[r.id.d].m+=r.id.mx;
+  });
+
+  var total=0,tmax=0;
+  for(var k in ds){total+=ds[k].a;tmax+=ds[k].m;}
+  var rate=tmax>0?Math.round(total/tmax*100):0;
+
+  var grade,sug;
+  if(rate>=90){grade='AAA 非常健康';sug='🎉 企业财务非常健康！继续保持';}
+  else if(rate>=80){grade='AA 状况良好';sug='👍 财务状况良好，建议定期体检';}
+  else if(rate>=70){grade='A 基本健康';sug='📌 基本健康，部分指标仍有提升空间';}
+  else if(rate>=60){grade='BBB 存在一定风险';sug='⚠️ 部分指标需关注，建议全面诊断';}
+  else if(rate>=50){grade='BB 风险较高';sug='🔴 风险较高，建议尽快咨询财税专家';}
+  else{grade='B 风险很高';sug='🔴 风险很高，强烈建议立即诊断！';}
+
+  // 总分卡
+  document.getElementById('scoreCard').innerHTML=
+    '<div class="l">综合评分</div><div class="n">'+total+'/'+tmax+'</div><div class="g">'+grade+'</div><div class="s">'+sug+'</div>';
+
+  // 维度网格
+  var dg=document.getElementById('dimGrid');
+  dg.innerHTML=DIMS.map(function(d){
+    var s=ds[d]||{a:0,m:0},r=s.m>0?Math.round(s.a/s.m*100):0;
+    var cls=r<60?'rd':r<80?'yw':'gc';
+    return '<div class="dc"><div class="n">'+d+'</div><div class="s" style="color:'+(r<60?'#dc2626':r<80?'#d97706':'#16a34a')+'">'+s.a+'</div><div style="font-size:11px;color:#999">/ '+s.m+' 分</div><div class="st" style="background:'+(r<60?'#feeaea':r<80?'#fef9e7':'#e6f7e6')+';color:'+(r<60?'#dc2626':r<80?'#d97706':'#16a34a')+'">得分率 '+r+'%</div></div>';
+  }).join('');
+
+  // 详情
+  var groups={};
+  results.forEach(function(r){
+    if(!groups[r.id.d])groups[r.id.d]=[];
+    groups[r.id.d].push(r);
+  });
+
+  var detail='';
+  DIMS.forEach(function(d){
+    var items=groups[d];if(!items||!items.length)return;
+    var dt=items.reduce(function(s,r){return s+r.score;},0);
+    var dm=items.reduce(function(s,r){return s+r.id.mx;},0);
+    var dr=dm>0?Math.round(dt/dm*100):0;
+    var dc=dr<60?'#dc2626':dr<80?'#d97706':'#16a34a';
+
+    detail+='<div class="sg">';
+    detail+='<div class="sg-t"><span class="tn">'+d+'</span><span class="ts" style="color:'+dc+'">'+dt+'/'+dm+' 分 ('+dr+'%)</span></div>';
+
+    items.forEach(function(r){
+      var vs=r.val!==null&&!isNaN(r.val)?(r.id.un==='%'?r.val.toFixed(1)+'%':r.val.toFixed(2)):'—';
+      detail+='<div class="si">';
+      detail+='<div class="il"><div class="in">'+r.id.n+'</div><div class="in2">'+r.id.no+'</div></div>';
+      detail+='<div class="iv"><div class="ivn">'+vs+'</div><div class="ivs">标准：'+r.id.st+'</div></div>';
+      detail+='<div class="ib '+(r.st==='green'?'g':r.st==='yellow'?'y':r.st==='red'?'r':'')+'">'+r.score+'分</div>';
+      detail+='</div>';
+    });
+    detail+='</div>';
+  });
+  document.getElementById('detailArea').innerHTML=detail;
+
+  sw('report');
+}
+
+// ===== 清除 =====
+function resetAll(){
+  if(!confirm('确定要清空所有已填数据吗？'))return;
+  for(var i=0;i<FIELDS.length;i++){
+    var el=document.getElementById('f_'+i);
+    if(el)el.value='';
+  }
+}
+
+// ===== Tab切换 =====
+function sw(name){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('act',t.dataset.tab===name);});
+  document.querySelectorAll('.pn').forEach(function(p){p.classList.toggle('act',p.id==='p-'+name);});
+  window.scrollTo(0,0);
+}
+
+// ===== 分享报告 =====
+function shareResult() {
+  var data = readData();
+  var filled = FIELDS.filter(function(f){return data[f]&&data[f]!==0});
+  if (filled.length < 3) { alert('请先填写数据再分享！'); return; }
+
+  // 重新计算一遍
+  var results = IDS.map(function(id){
+    var val = null; try { val = id.c(data); } catch(e) {}
+    var score = 0, st = 'green';
+    if (val !== null && !isNaN(val)) {
+      if (id.gr(val)) { score = id.mx; st = 'green'; }
+      else if (id.yl(val)) { score = Math.round(id.mx*0.6*10)/10||0.1; st = 'yellow'; }
+      else { score = Math.round(id.mx*0.2*10)/10||0.1; st = 'red'; }
+    } else { st = 'gray'; }
+    return { n: id.n, val: val, score: score, st: st, un: id.un, stxt: id.st, no: id.no, d: id.d, mx: id.mx };
+  });
+
+  var ds = {};
+  results.forEach(function(r){
+    if (!ds[r.d]) ds[r.d] = { a:0, m:0 };
+    ds[r.d].a += r.score; ds[r.d].m += r.mx;
+  });
+  var total = 0, tmax = 0;
+  for (var k in ds) { total += ds[k].a; tmax += ds[k].m; }
+  var rate = tmax > 0 ? Math.round(total/tmax*100) : 0;
+  var grade; if (rate >= 90) grade = 'AAA 非常健康';
+  else if (rate >= 80) grade = 'AA 状况良好';
+  else if (rate >= 70) grade = 'A 基本健康';
+  else if (rate >= 60) grade = 'BBB 存在一定风险';
+  else if (rate >= 50) grade = 'BB 风险较高';
+  else grade = 'B 风险很高';
+
+  var H = [];
+  function a(s) { H.push(s); }
+  a('<!DOCTYPE html><html lang=zh-CN><head><meta charset=UTF-8><meta name=viewport content=width=device-width,initial-scale=1.0>');
+  a('<title>企业财务健康体检报告</title><style>');
+  a('*{margin:0;padding:0;box-sizing:border-box}');
+  a('body{font-family:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f0f4f8;color:#333;padding:0 0 30px}');
+  a('.hd{background:linear-gradient(135deg,#065f46,#059669);color:#fff;padding:28px 20px;text-align:center}');
+  a('.hd h1{font-size:20px;margin-bottom:4px}');
+  a('.hd .sub{font-size:12px;opacity:.8}');
+  a('.c{padding:14px;max-width:580px;margin:0 auto}');
+  a('.sc{background:linear-gradient(135deg,#065f46,#059669);border-radius:16px;padding:24px 20px;text-align:center;color:#fff;margin-bottom:16px}');
+  a('.sc .l{font-size:12px;opacity:.8}');
+  a('.sc .n{font-size:38px;font-weight:800;margin:4px 0}');
+  a('.sc .g{font-size:15px;font-weight:600}');
+  a('.dg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}');
+  a('.dc{background:#fff;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}');
+  a('.dc .dn{font-size:11px;color:#888}');
+  a('.dc .ds{font-size:20px;font-weight:700}');
+  a('.sg{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:10px}');
+  a('.sg-t{padding:10px 14px;display:flex;justify-content:space-between;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#065f46}');
+  a('.si{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f8f8f8}');
+  a('.si .il{flex:1}');
+  a('.si .in{font-size:13px;font-weight:600;color:#333}');
+  a('.si .in2{font-size:10px;color:#999}');
+  a('.si .iv{text-align:right;margin-left:8px}');
+  a('.si .ivn{font-size:13px;font-weight:700;color:#333}');
+  a('.si .ivs{font-size:10px;color:#999}');
+  a('.tag{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:8px}');
+  a('.g{background:#e6f7e6;color:#16a34a}');
+  a('.y{background:#fef9e7;color:#d97706}');
+  a('.r{background:#feeaea;color:#dc2626}');
+  a('.mk{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);border-radius:14px;padding:22px 18px;text-align:center;color:#fff;margin:16px 0}');
+  a('.mk .btn{display:inline-block;background:#fff;color:#302b63;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none}');
+  a('.ft{text-align:center;padding:12px;font-size:10px;color:#999}');
+  a('</style></head><body>');
+  a('<div class=hd><h1>🏥 企业财务健康体检报告</h1><div class=sub>宇守信咨询 · 洪淳宇</div></div>');
+  a('<div class=c>');
+  a('<div class=sc><div class=l>综合评分</div><div class=n>' + total + '/' + tmax + '</div><div class=g>' + grade + '</div></div>');
+  a('<div class=dg>');
+  DIMS.forEach(function(dim) {
+    var s = ds[dim] || {a:0,m:0};
+    var r = s.m > 0 ? Math.round(s.a/s.m*100) : 0;
+    var c = r < 60 ? '#dc2626' : (r < 80 ? '#d97706' : '#16a34a');
+    a('<div class=dc><div class=dn>' + dim + '</div><div class=ds style=color:' + c + '>' + s.a + '</div></div>');
+  });
+  a('</div>');
+
+  var groups = {};
+  results.forEach(function(r) { if (!groups[r.d]) groups[r.d] = []; groups[r.d].push(r); });
+  DIMS.forEach(function(dim) {
+    var items = groups[dim]; if (!items || !items.length) return;
+    var dt = items.reduce(function(s,r){return s+r.score;}, 0);
+    var dm = items.reduce(function(s,r){return s+r.mx;}, 0);
+    var dr = dm > 0 ? Math.round(dt/dm*100) : 0;
+    var dc = dr < 60 ? '#dc2626' : (dr < 80 ? '#d97706' : '#16a34a');
+    a('<div class=sg>');
+    a('<div class=sg-t><span>' + dim + '</span><span style=color:' + dc + '>' + dt + '/' + dm + '分(' + dr + '%)</span></div>');
+    items.forEach(function(r) {
+      var vs = r.val !== null && !isNaN(r.val) ? (r.un === '%' ? r.val.toFixed(1) + '%' : r.val.toFixed(2)) : '—';
+      a('<div class=si><div class=il><div class=in>' + r.n + '</div><div class=in2>' + r.no + '</div></div>');
+      a('<div class=iv><div class=ivn>' + vs + '</div><div class=ivs>标准：' + r.stxt + '</div></div>');
+      a('<div class="tag ' + r.st + '">' + r.score + '分</div></div>');
+    });
+    a('</div>');
+  });
+
+  a('<div class=mk><h3 style=font-size:16px;margin-bottom:4px>🔒 免费版 · 基础指标</h3>');
+  a('<p style=font-size:12px;opacity:.8;line-height:1.6;margin-bottom:10px>升级会员享完整诊断报告+定制优化建议+一对一咨询</p>');
+  a('<a class=btn href=https://sparrow528.github.io/tax-membership/ target=_blank>👉 了解会员方案</a></div>');
+  a('<div class=ft>宇守信投资管理咨询（北京）有限公司 · 洪淳宇<br>📞 186-0129-4989</div>');
+  a('</div></body></html>');
+
+  var win = window.open('', '_blank');
+  win.document.write(H.join('\n'));
+  win.document.close();
+}
+
+// ===== 初始化 =====
+buildForm();
+</script>
+</body>
+</html>
