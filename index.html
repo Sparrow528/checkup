@@ -62,12 +62,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .hc ol{padding-left:20px}
 .ctc{background:#eef2ff;border-radius:8px;padding:12px}
 .ctc strong{font-size:14px;color:#065f46}
-.mb{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);border-radius:12px;padding:20px;text-align:center;margin-top:16px;color:#fff}
+.mb{background:linear-gradient(135deg,#065f46,#059669);border-radius:12px;padding:20px;text-align:center;margin-top:16px;color:#fff}
 .mb h3{font-size:15px;margin-bottom:6px}
 .mb p{font-size:12px;opacity:.85;line-height:1.6}
 .mb .mbtn{display:inline-block;background:#fff;color:#065f46;padding:8px 24px;border-radius:20px;text-decoration:none;font-size:13px;font-weight:600;margin-top:8px}
 .bk{text-align:center;padding:16px;margin-top:4px}
-.bk a{display:inline-block;padding:10px 24px;background:#ecfdf5;color:#065f46;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #a7f3d0}
+.bk a{display:inline-block;padding:10px 24px;background:#e8eaf6;color:#065f46;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #d0dcec}
 @media(max-width:480px){.dg{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -152,11 +152,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 
 <div class="bk">
-  <a href="https://sparrow528.github.io/checkup-landing/">← 返回免费工具入口</a>
+  <a href="https://sparrow528.github.io/checkup-landing/">← 返回共享工具入口</a>
 </div>
 
 <div class="mb">
-  <h3>🔒 免费版 · 基础指标</h3>
+  <h3>🔒 共享版 · 基础指标</h3>
   <p>升级会员享完整诊断报告 + 定制优化建议 + 一对一咨询</p>
   <a class="mbtn" href="https://sparrow528.github.io/tax-membership/" target="_blank">👉 了解会员方案</a>
   <div style="margin-top:10px;font-size:11px;opacity:.6">宇守信投资管理咨询（北京）有限公司 · 洪淳宇</div>
@@ -410,7 +410,7 @@ function buildForm(){
 
   // 右列-利润表
   h+='<div style="flex:1;min-width:280px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);">';
-  h+='<div style="background:linear-gradient(135deg,#1b5e20,#43a047);padding:12px 16px;"><div style="font-size:14px;font-weight:700;color:#fff;">📊 利润表</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">输入或上传自动填入</div></div>';
+  h+='<div style="background:linear-gradient(135deg,#065f46,#059669);padding:12px 16px;"><div style="font-size:14px;font-weight:700;color:#fff;">📊 利润表</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">输入或上传自动填入</div></div>';
   h+='<div style="padding:4px 0;">';
   for(var i=0;i<plFields.length;i++){
     var f=plFields[i],idx=FIELDS.indexOf(f[1]);
@@ -422,7 +422,7 @@ function buildForm(){
 
   // 底部-现金流与税务
   h+='<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px;">';
-  h+='<div style="background:linear-gradient(135deg,#e65100,#ff9800);padding:10px 16px;"><div style="font-size:13px;font-weight:700;color:#fff;">💰 现金流与税务</div></div>';
+  h+='<div style="background:linear-gradient(135deg,#065f46,#059669);padding:10px 16px;"><div style="font-size:13px;font-weight:700;color:#fff;">💰 现金流与税务</div></div>';
   h+='<div style="padding:4px 0;display:flex;flex-wrap:wrap;">';
   for(var i=0;i<cashFields.length;i++){
     var f=cashFields[i],idx=FIELDS.indexOf(f[1]);
@@ -605,8 +605,8 @@ function shareResult() {
   a('.g{background:#e6f7e6;color:#16a34a}');
   a('.y{background:#fef9e7;color:#d97706}');
   a('.r{background:#feeaea;color:#dc2626}');
-  a('.mk{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);border-radius:14px;padding:22px 18px;text-align:center;color:#fff;margin:16px 0}');
-  a('.mk .btn{display:inline-block;background:#fff;color:#302b63;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none}');
+  a('.mk{background:linear-gradient(135deg,#065f46,#059669);border-radius:14px;padding:22px 18px;text-align:center;color:#fff;margin:16px 0}');
+  a('.mk .btn{display:inline-block;background:#fff;color:#065f46;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none}');
   a('.ft{text-align:center;padding:12px;font-size:10px;color:#999}');
   a('</style></head><body>');
   a('<div class=hd><h1>🏥 企业财务健康体检报告</h1><div class=sub>宇守信咨询 · 洪淳宇</div></div>');
@@ -640,10 +640,10 @@ function shareResult() {
     a('</div>');
   });
 
-  a('<div class=mk><h3 style=font-size:16px;margin-bottom:4px>🔒 免费版 · 基础指标</h3>');
+  a('<div class=mk><h3 style=font-size:16px;margin-bottom:4px>🔒 共享版 · 基础指标</h3>');
   a('<p style=font-size:12px;opacity:.8;line-height:1.6;margin-bottom:10px>升级会员享完整诊断报告+定制优化建议+一对一咨询</p>');
   a('<a class=btn href=https://sparrow528.github.io/tax-membership/ target=_blank>👉 了解会员方案</a></div>');
-  a('<div class=ft>宇守信投资管理咨询（北京）有限公司 · 洪淳宇<br>📞 186-0129-4989</div>');
+  a('<div class=ft>宇守信投资管理咨询（北京）有限公司 · 洪淳宇<br>📞 186-0129-4989<br><span style=font-size:9px;opacity:.6>版本 V3.0</span></div>');
   a('</div></body></html>');
 
   var win = window.open('', '_blank');
