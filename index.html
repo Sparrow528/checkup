@@ -7,67 +7,101 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#2d3436;padding-bottom:60px}
-.hd{background:linear-gradient(135deg,#065f46,#059669);color:#fff;padding:32px 20px 24px;text-align:center}
-.hd h1{font-size:22px;margin-bottom:6px}
-.hd p{font-size:13px;opacity:.85}
-.hd .b{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:4px 14px;font-size:11px;margin-top:8px}
-.tabs{display:flex;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);position:sticky;top:0;z-index:10}
-.tab{flex:1;text-align:center;padding:14px 0;font-size:14px;font-weight:500;color:#888;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
-.tab.act{color:#065f46;border-bottom-color:#065f46}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#d8eed9 0%,#add8ad 60%,#e8f5e9 100%);color:#2d3436;min-height:100vh;padding-bottom:100px}
+
+/* ── 头部 ── */
+.hd{text-align:center;padding:36px 20px 16px}
+.hd h1{font-size:22px;font-weight:800;color:#1a5c3a;margin-bottom:4px}
+.hd p{font-size:13px;color:#4a7c5c}
+.hd .b{display:inline-block;background:rgba(5,150,105,.1);border-radius:20px;padding:4px 14px;font-size:11px;margin-top:6px;color:#059669}
+
+/* ── Tab ── */
+.tabs{display:flex;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);box-shadow:0 1px 4px rgba(0,0,0,.04);position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(0,0,0,.04)}
+.tab{flex:1;text-align:center;padding:14px 0;font-size:14px;font-weight:600;color:#8a9e90;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab.act{color:#059669;border-bottom-color:#059669}
+
+/* ── 面板 ── */
 .pn{display:none;padding:16px}
 .pn.act{display:block}
-.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px}
-.ct{background:#f0f4ff;padding:10px 16px;font-size:13px;font-weight:600;color:#065f46;border-bottom:1px solid #e0e7ff}
-.fr{display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid #f5f5f5}
-.fr label{font-size:13px;color:#444;flex:1}
-.fr input{width:120px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right;background:#fff8e1;outline:none;transition:border-color .2s}
-.fr input:focus{border-color:#3b82f6}
-.btm{position:sticky;bottom:0;background:#fff;padding:12px 16px;display:flex;gap:10px;box-shadow:0 -2px 8px rgba(0,0,0,.06);z-index:10}
-.btm button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer}
-.btn-p{background:linear-gradient(135deg,#065f46,#059669);color:#fff}
-.btn-s{background:#e8ecf1;color:#555}
-.sc{background:linear-gradient(135deg,#065f46,#059669);color:#fff;border-radius:16px;padding:28px 20px;text-align:center;margin-bottom:16px}
+
+/* ── 卡片 ── */
+.card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:12px}
+.ct{background:#f4faf6;padding:10px 16px;font-size:13px;font-weight:700;color:#1a5c3a;border-bottom:1px solid #e0efe5}
+
+/* ── 表单行 ── */
+.fr{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f5faf7}
+.fr:last-child{border-bottom:none}
+.fr label{font-size:13px;color:#4a7c5c;flex:1}
+.fr input{width:120px;padding:8px 10px;border:1px solid #d0e8d5;border-radius:10px;font-size:13px;text-align:right;background:#fafffb;outline:none;transition:border-color .2s}
+.fr input:focus{border-color:#059669;background:#fff}
+
+/* ── 底部按钮 ── */
+.btm{position:sticky;bottom:0;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);padding:14px 16px;display:flex;gap:10px;box-shadow:0 -2px 12px rgba(0,0,0,.04);z-index:10;border-top:1px solid rgba(0,0,0,.04)}
+.btm button{flex:1;padding:12px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:all .15s}
+.btn-p{background:linear-gradient(135deg,#059669,#10b981);color:#fff;box-shadow:0 2px 8px rgba(5,150,105,.25)}
+.btn-p:active{transform:scale(.97)}
+.btn-s{background:#e8f0ec;color:#4a7c5c}
+.btn-s:active{transform:scale(.97)}
+
+/* ── 评分卡 ── */
+.sc{background:linear-gradient(135deg,#1a5c3a,#059669);color:#fff;border-radius:18px;padding:28px 20px;text-align:center;margin-bottom:16px;box-shadow:0 4px 16px rgba(5,150,105,.15)}
 .sc .l{font-size:13px;opacity:.85}
-.sc .n{font-size:40px;font-weight:800;margin:6px 0}
-.sc .g{font-size:16px;font-weight:600;margin-bottom:4px}
+.sc .n{font-size:40px;font-weight:900;margin:6px 0}
+.sc .g{font-size:16px;font-weight:700;margin-bottom:4px}
 .sc .s{font-size:13px;opacity:.9;line-height:1.6}
-.dg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.dc{background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.dc .n{font-size:12px;color:#888}
-.dc .s{font-size:20px;font-weight:700}
-.dc .st{font-size:11px;margin-top:4px;padding:2px 10px;border-radius:10px;display:inline-block}
-.gc .dc .s{color:#16a34a}
+
+/* ── 维度卡片 ── */
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.dc{background:#fff;border-radius:14px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.dc .n{font-size:12px;color:#8a9e90;margin-bottom:2px}
+.dc .s{font-size:22px;font-weight:800}
+.dc .st{font-size:11px;margin-top:4px;padding:3px 12px;border-radius:12px;display:inline-block;font-weight:600}
+.gc .dc .s{color:#059669}
 .yw .dc .s{color:#d97706}
 .rd .dc .s{color:#dc2626}
-.sg{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:10px}
-.sg-t{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f0f0}
-.sg-t .tn{font-size:14px;font-weight:700;color:#065f46}
-.sg-t .ts{font-size:13px;font-weight:600}
-.si{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f8f8f8}
+
+/* ── 指标组 ── */
+.sg{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:10px}
+.sg-t{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f5f2;font-size:14px;font-weight:700;color:#1a5c3a}
+.sg-t .ts{font-size:13px}
+.si{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f8faf9}
 .si:last-child{border-bottom:none}
 .si .il{flex:1}
-.si .in{font-size:13px;font-weight:600;color:#333}
-.si .in2{font-size:11px;color:#999;margin-top:2px}
+.si .in{font-size:13px;font-weight:700;color:#333}
+.si .in2{font-size:11px;color:#8a9e90;margin-top:2px}
 .si .iv{text-align:right;margin-left:10px}
 .si .ivn{font-size:14px;font-weight:700;color:#333}
-.si .ivs{font-size:11px;color:#999}
-.si .ib{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;margin-left:10px;white-space:nowrap}
-.ib.g{background:#e6f7e6;color:#16a34a}
+.si .ivs{font-size:10px;color:#8a9e90}
+.si .ib{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;margin-left:10px;white-space:nowrap}
+.ib.g{background:#e6f7e6;color:#059669}
 .ib.y{background:#fef9e7;color:#d97706}
 .ib.r{background:#feeaea;color:#dc2626}
-.hc{background:#fff;border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.hc h3{font-size:15px;margin-bottom:8px;color:#065f46}
+
+/* ── 说明卡片 ── */
+.hc{background:#fff;border-radius:14px;padding:20px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.hc h3{font-size:15px;margin-bottom:8px;color:#1a5c3a}
 .hc p,.hc li{font-size:13px;color:#555;line-height:1.8}
 .hc ol{padding-left:20px}
-.ctc{background:#eef2ff;border-radius:8px;padding:12px}
-.ctc strong{font-size:14px;color:#065f46}
-.mb{background:linear-gradient(135deg,#065f46,#059669);border-radius:12px;padding:20px;text-align:center;margin-top:16px;color:#fff}
-.mb h3{font-size:15px;margin-bottom:6px}
-.mb p{font-size:12px;opacity:.85;line-height:1.6}
-.mb .mbtn{display:inline-block;background:#fff;color:#065f46;padding:8px 24px;border-radius:20px;text-decoration:none;font-size:13px;font-weight:600;margin-top:8px}
+.ctc{background:#f4faf6;border-radius:10px;padding:14px;border-left:3px solid #059669}
+.ctc strong{font-size:14px;color:#1a5c3a}
+
+/* ── 会员引导 ── */
+.mb{background:rgba(255,255,255,.75);backdrop-filter:blur(8px);border-radius:16px;padding:24px 20px;text-align:center;margin:16px 16px 0;border:1px solid rgba(255,255,255,.8);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.mb h3{font-size:15px;margin-bottom:6px;color:#1a5c3a}
+.mb p{font-size:12px;color:#6b8a75;line-height:1.6}
+.mb .mbtn{display:inline-block;background:linear-gradient(135deg,#059669,#10b981);color:#fff;padding:10px 28px;border-radius:14px;text-decoration:none;font-size:14px;font-weight:700;margin-top:10px;box-shadow:0 2px 8px rgba(5,150,105,.2);transition:all .15s}
+.mb .mbtn:hover{box-shadow:0 4px 14px rgba(5,150,105,.3)}
+
+/* ── 返回 ── */
 .bk{text-align:center;padding:16px;margin-top:4px}
-.bk a{display:inline-block;padding:10px 24px;background:#e8eaf6;color:#065f46;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #d0dcec}
+.bk a{display:inline-block;padding:10px 24px;background:rgba(255,255,255,.7);color:#1a5c3a;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid rgba(0,0,0,.06);transition:all .15s}
+.bk a:hover{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+
+/* ── 底部固定栏 ── */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.06);padding:12px 20px;display:flex;align-items:center;justify-content:center;gap:16px;font-size:12px;color:#7aa88a;z-index:100}
+.bottom-bar .sep{color:#ccc}
+.bottom-bar .brand{font-weight:600;color:#4a7c5c}
+
 @media(max-width:480px){.dg{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -80,17 +114,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 
 <!-- 上传区 -->
-<div style="background:#e8f0fe;border-radius:12px;margin:12px 16px;padding:14px 16px;">
-  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px;">
-    <span style="font-size:13px;color:#065f46;font-weight:600;">📎 上传Excel自动填表</span>
+<div style="background:rgba(255,255,255,.7);border-radius:14px;margin:12px 16px;padding:14px 16px;border:1px solid rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(0,0,0,.04)">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="font-size:13px;color:#1a5c3a;font-weight:600">📎 上传Excel自动填表</span>
     <input type="file" id="bsInput" accept=".xlsx,.xls" style="font-size:12px;flex:1;min-width:120px">
-    <span style="font-size:11px;color:#888;">先传资产负债表，再传利润表</span>
+    <span style="font-size:11px;color:#8a9e90">先传资产负债表，再传利润表</span>
   </div>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#555;margin-top:4px;">
-    <a href="标准资产负债表模板.xlsx" download style="color:#065f46;font-weight:600;">📥 下载资产负债表空表</a>
-    <span style="color:#ccc;">|</span>
-    <a href="标准利润表模板.xlsx" download style="color:#065f46;font-weight:600;">📥 下载利润表空表</a>
-    <span style="color:#999;font-size:10px;">（交给企业复制粘贴数据即可）</span>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#4a7c5c;margin-top:4px">
+    <a href="标准资产负债表模板.xlsx" download style="color:#059669;font-weight:600">📥 下载资产负债表空表</a>
+    <span style="color:#ccc">|</span>
+    <a href="标准利润表模板.xlsx" download style="color:#059669;font-weight:600">📥 下载利润表空表</a>
+    <span style="color:#8a9e90;font-size:10px">（交给企业复制粘贴数据即可）</span>
   </div>
 </div>
 
@@ -158,8 +192,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="mb">
   <h3>🔒 共享版 · 基础指标</h3>
   <p>升级会员享完整诊断报告 + 定制优化建议 + 一对一咨询</p>
-  <a class="mbtn" href="https://sparrow528.github.io/tax-membership/" target="_blank">👉 了解会员方案</a>
-  <div style="margin-top:10px;font-size:11px;opacity:.6">宇守信投资管理咨询（北京）有限公司 · 洪淳宇</div>
+  <a class="mbtn" href="https://sparrow528.github.io/tax-membership/" target="_blank">了解会员方案 →</a>
+  <div style="margin-top:12px;font-size:11px;color:#8a9e90">宇守信投资管理咨询（北京）有限公司 · 洪淳宇</div>
+</div>
+
+<div class="bottom-bar">
+  <span class="brand">宇守信咨询</span>
+  <span class="sep">|</span>
+  <span>186-0129-4989</span>
+  <span class="sep">|</span>
+  <span>版本 V3.1</span>
 </div>
 
 <script>
@@ -400,7 +442,7 @@ function buildForm(){
 
   // 左列-资产负债表
   h+='<div style="flex:1;min-width:280px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);">';
-  h+='<div style="background:linear-gradient(135deg,#065f46,#059669);padding:12px 16px;"><div style="font-size:14px;font-weight:700;color:#fff;">📋 资产负债表</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">输入或上传自动填入</div></div>';
+  h+='<div style="background:linear-gradient(135deg,#1a5c3a,#059669);padding:12px 16px;"><div style="font-size:14px;font-weight:700;color:#fff;">📋 资产负债表</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">输入或上传自动填入</div></div>';
   h+='<div style="padding:4px 0;">';
   for(var i=0;i<bsFields.length;i++){
     var f=bsFields[i],idx=FIELDS.indexOf(f[1]);
@@ -410,7 +452,7 @@ function buildForm(){
 
   // 右列-利润表
   h+='<div style="flex:1;min-width:280px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);">';
-  h+='<div style="background:linear-gradient(135deg,#065f46,#059669);padding:12px 16px;"><div style="font-size:14px;font-weight:700;color:#fff;">📊 利润表</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">输入或上传自动填入</div></div>';
+  h+='<div style="background:linear-gradient(135deg,#1a5c3a,#059669);padding:12px 16px;"><div style="font-size:14px;font-weight:700;color:#fff;">📊 利润表</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;">输入或上传自动填入</div></div>';
   h+='<div style="padding:4px 0;">';
   for(var i=0;i<plFields.length;i++){
     var f=plFields[i],idx=FIELDS.indexOf(f[1]);
@@ -422,13 +464,13 @@ function buildForm(){
 
   // 底部-现金流与税务
   h+='<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px;">';
-  h+='<div style="background:linear-gradient(135deg,#065f46,#059669);padding:10px 16px;"><div style="font-size:13px;font-weight:700;color:#fff;">💰 现金流与税务</div></div>';
+  h+='<div style="background:linear-gradient(135deg,#1a5c3a,#059669);padding:10px 16px;"><div style="font-size:13px;font-weight:700;color:#fff;">💰 现金流与税务</div></div>';
   h+='<div style="padding:4px 0;display:flex;flex-wrap:wrap;">';
   for(var i=0;i<cashFields.length;i++){
     var f=cashFields[i],idx=FIELDS.indexOf(f[1]);
     h+='<div style="flex:1;min-width:200px;display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid #f5f5f5;">';
     h+='<label style="flex:1;font-size:13px;color:#444;">'+f[0]+'</label>';
-    h+='<input type="number" step="any" id="f_'+idx+'" placeholder="0" style="width:120px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right;background:#fff3e0;outline:none;"></div>';
+    h+='<input type="number" step="any" id="f_'+idx+'" placeholder="0" style="width:120px;padding:6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;text-align:right;background:#fafffb;outline:none;"></div>';
   }
   h+='</div></div>';
 
@@ -580,11 +622,11 @@ function shareResult() {
   a('<title>企业财务健康体检报告</title><style>');
   a('*{margin:0;padding:0;box-sizing:border-box}');
   a('body{font-family:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#f0f4f8;color:#333;padding:0 0 30px}');
-  a('.hd{background:linear-gradient(135deg,#065f46,#059669);color:#fff;padding:28px 20px;text-align:center}');
+  a('.hd{background:linear-gradient(135deg,#1a5c3a,#059669);color:#fff;padding:28px 20px;text-align:center}');
   a('.hd h1{font-size:20px;margin-bottom:4px}');
   a('.hd .sub{font-size:12px;opacity:.8}');
   a('.c{padding:14px;max-width:580px;margin:0 auto}');
-  a('.sc{background:linear-gradient(135deg,#065f46,#059669);border-radius:16px;padding:24px 20px;text-align:center;color:#fff;margin-bottom:16px}');
+  a('.sc{background:linear-gradient(135deg,#1a5c3a,#059669);border-radius:16px;padding:24px 20px;text-align:center;color:#fff;margin-bottom:16px}');
   a('.sc .l{font-size:12px;opacity:.8}');
   a('.sc .n{font-size:38px;font-weight:800;margin:4px 0}');
   a('.sc .g{font-size:15px;font-weight:600}');
@@ -593,7 +635,7 @@ function shareResult() {
   a('.dc .dn{font-size:11px;color:#888}');
   a('.dc .ds{font-size:20px;font-weight:700}');
   a('.sg{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:10px}');
-  a('.sg-t{padding:10px 14px;display:flex;justify-content:space-between;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#065f46}');
+  a('.sg-t{padding:10px 14px;display:flex;justify-content:space-between;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#1a5c3a}');
   a('.si{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f8f8f8}');
   a('.si .il{flex:1}');
   a('.si .in{font-size:13px;font-weight:600;color:#333}');
@@ -605,8 +647,8 @@ function shareResult() {
   a('.g{background:#e6f7e6;color:#16a34a}');
   a('.y{background:#fef9e7;color:#d97706}');
   a('.r{background:#feeaea;color:#dc2626}');
-  a('.mk{background:linear-gradient(135deg,#065f46,#059669);border-radius:14px;padding:22px 18px;text-align:center;color:#fff;margin:16px 0}');
-  a('.mk .btn{display:inline-block;background:#fff;color:#065f46;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none}');
+  a('.mk{background:linear-gradient(135deg,#1a5c3a,#059669);border-radius:14px;padding:22px 18px;text-align:center;color:#fff;margin:16px 0}');
+  a('.mk .btn{display:inline-block;background:#fff;color:#1a5c3a;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none}');
   a('.ft{text-align:center;padding:12px;font-size:10px;color:#999}');
   a('</style></head><body>');
   a('<div class=hd><h1>🏥 企业财务健康体检报告</h1><div class=sub>宇守信咨询 · 洪淳宇</div></div>');
